@@ -1,6 +1,7 @@
 package com.example.airAlertBot;
 
 import com.example.airAlertBot.bot.Bot;
+import com.example.airAlertBot.services.OnboardingService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
@@ -12,9 +13,15 @@ public class BotInitializer implements CommandLineRunner {
     @Value("${telegram.bot.token}")
     private String botToken;
 
+    private final OnboardingService onboardingService;
+
+    public BotInitializer(OnboardingService onboardingService){
+        this.onboardingService = onboardingService;
+    }
+
     @Override
     public void run(String... args) throws Exception {
         TelegramBotsLongPollingApplication botsApplication = new TelegramBotsLongPollingApplication();
-        botsApplication.registerBot(botToken, new Bot(botToken));
+        botsApplication.registerBot(botToken, new Bot(botToken, onboardingService));
     }
 }

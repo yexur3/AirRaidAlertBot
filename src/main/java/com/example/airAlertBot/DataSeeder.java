@@ -44,6 +44,17 @@ public class DataSeeder implements CommandLineRunner {
 
             cityRepository.save(chernihivCity);
 
+            String[] districtsChe = {"Desnianskyi", "Novozavodskyi"};
+
+            for(var districtName : districtsChe){
+                District district = new District();
+
+                district.setName(districtName);
+                district.setCityId(chernihivCity.getId());
+
+                districtRepository.save(district);
+            }
+
         }
     }
 }

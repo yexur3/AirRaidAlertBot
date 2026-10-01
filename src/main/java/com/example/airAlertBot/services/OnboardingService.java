@@ -1,0 +1,157 @@
+package com.example.airAlertBot.services;
+
+import com.example.airAlertBot.entities.City;
+import com.example.airAlertBot.entities.District;
+import com.example.airAlertBot.entities.UserSettings;
+import com.example.airAlertBot.repositories.CityRepository;
+import com.example.airAlertBot.repositories.DistrictRepository;
+import com.example.airAlertBot.repositories.UserSettingsRepository;
+import org.springframework.stereotype.Service;
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardRow;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+import org.telegram.telegrambots.meta.generics.TelegramClient;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.NoSuchElementException;
+
+@Service
+public class OnboardingService {
+
+    private final CityRepository cityRepository;
+    private final DistrictRepository districtRepository;
+    private final UserSettingsRepository userSettingsRepository;
+
+    public OnboardingService(CityRepository cityRepository, DistrictRepository districtRepository, UserSettingsRepository userSettingsRepository){
+        this.cityRepository = cityRepository;
+        this.districtRepository = districtRepository;
+        this.userSettingsRepository = userSettingsRepository;
+    }
+
+    public void handleStart(long chatId, TelegramClient telegramClient){
+        SendMessage send = SendMessage.builder()
+                .chatId(chatId)
+                .text("Привіт! Я бот для сповіщень про повітряні тривоги.")
+                .build();
+
+        try {
+            telegramClient.execute(send);
+        } catch (TelegramApiException e){
+            e.printStackTrace();
+        }
+
+        List<City> cityList = cityRepository.findAll();
+        List<InlineKeyboardRow> rows = new ArrayList<>();
+
+        for(var city : cityList){
+            InlineKeyboardButton button = InlineKeyboardButton.builder()
+                    .text(city.getName())
+                    .callbackData("City_" + city.getId())
+                    .build();
+
+            InlineKeyboardRow row = new InlineKeyboardRow(button);
+            rows.add(row);
+        }
+
+        InlineKeyboardMarkup markup = InlineKeyboardMarkup.builder()
+                .keyboard(rows)
+                .build();
+
+        SendMessage citySelection = SendMessage.builder()
+                .chatId(chatId)
+                .text("Обери своє місто")
+                .replyMarkup(markup)
+                .build();
+
+        try {
+            telegramClient.execute(citySelection);
+        } catch (TelegramApiException ex){
+            ex.printStackTrace();
+        }
+    }
+
+    public void handleCallback(long chatId, String callback, TelegramClient telegramClient) {
+        if(callback.startsWith("City_")){
+            long cityId = Long.parseLong(callback.replace("City_", ""));
+
+            UserSettings userSettings = new UserSettings();
+
+            userSettings.setChatId(chatId);
+            userSettings.setCityId(cityId);
+
+            userSettingsRepository.save(userSettings);
+
+            List<District> districts = districtRepository.findByCityId(cityId);
+            List<InlineKeyboardRow> rows = new ArrayList<>();
+
+            for (var district : districts){
+                InlineKeyboardButton button = InlineKeyboardButton.builder()
+                        .text(district.getName())
+                        .callbackData("District_" + district.getId())
+                        .build();
+
+                InlineKeyboardRow row = new InlineKeyboardRow(button);
+                rows.add(row);
+            }
+
+            InlineKeyboardMarkup markup = InlineKeyboardMarkup.builder()
+                    .keyboard(rows)
+                    .build();
+
+            SendMessage districtSelection = SendMessage.builder()
+                    .chatId(chatId)
+                    .text("Обери свій район")
+                    .replyMarkup(markup)
+                    .build();
+
+            try {
+                telegramClient.execute(districtSelection);
+            } catch (TelegramApiException ex){
+                ex.printStackTrace();
+            }
+
+        } else if (callback.startsWith("District_")){
+            long districtId = Long.parseLong(callback.replace("District_", ""));
+
+            UserSettings user = userSettingsRepository.findByChatId(chatId)
+                    .orElseThrow();
+
+            user.setDistrictId(districtId);
+
+            List<InlineKeyboardRow> rows = new ArrayList<>();
+
+            InlineKeyboardButton buttonTrue = InlineKeyboardButton.builder()
+                    .text("Так")
+                    .callbackData("Neighboring_true")
+                    .build();
+
+            InlineKeyboardButton buttonFalse = InlineKeyboardButton.builder()
+                    .text("Ні")
+                    .callbackData("Neighboring_false")
+                    .build();
+
+            rows.add(new InlineKeyboardRow(buttonTrue));
+            rows.add(new InlineKeyboardRow(buttonFalse));
+
+            InlineKeyboardMarkup markup = InlineKeyboardMarkup.builder()
+                    .keyboard(rows)
+                    .build();
+
+            SendMessage neighboringSelection = SendMessage.builder()
+                    .chatId(chatId)
+                    .text("Чи Ви хочете отримувати повідомлення про загрозу в сусідніх від Вас районах? (Якщо ні, то Ви будете отримувати повідомлення про загрозу лише у своєму районі.)")
+                    .replyMarkup(markup)
+                    .build();
+
+            try {
+                telegramClient.execute(neighboringSelection);
+            } catch (TelegramApiException ex){
+                ex.printStackTrace();
+            }
+        }
+    }
+
+}

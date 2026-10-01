@@ -15,7 +15,6 @@ public class UserSettings {
 
     private Long cityId;
 
-    @Column(nullable = false)
     private Long districtId;
 
     private boolean subscribeToNeighboring;
