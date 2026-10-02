@@ -7,6 +7,8 @@ import com.example.airAlertBot.repositories.DistrictRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
+import java.util.Arrays;
+
 @Component
 public class DataSeeder implements CommandLineRunner {
 
@@ -23,11 +25,13 @@ public class DataSeeder implements CommandLineRunner {
         if(cityRepository.count() == 0) {
             City kyivCity = new City();
 
-            kyivCity.setName("Kyiv");
+            kyivCity.setName("Київ");
 
             cityRepository.save(kyivCity);
 
-            String[] districts = {"Obolon", "Podil", "Darnytsia", "Desnianskyi", "Dniprovskyi", "Holosiivskyi", "Pecherskyi", "Solom_ianskyi", "Sviatoshynskyi", "Shevchenkivskyi"};
+            String[] districts = {"Оболонський", "Подільський", "Дарницький", "Деснянський", "Дніпровський", "Голосіївський", "Печерський", "Солом'янський", "Святошинський", "Шевченківський"};
+
+            Arrays.sort(districts);
 
             for(var districtName : districts){
                 District district = new District();
@@ -40,11 +44,13 @@ public class DataSeeder implements CommandLineRunner {
 
             City chernihivCity = new City();
 
-            chernihivCity.setName("Chernihiv");
+            chernihivCity.setName("Чернігів");
 
             cityRepository.save(chernihivCity);
 
-            String[] districtsChe = {"Desnianskyi", "Novozavodskyi"};
+            String[] districtsChe = {"Деснянський", "Новозаводський"};
+
+            Arrays.sort(districtsChe);
 
             for(var districtName : districtsChe){
                 District district = new District();
