@@ -16,7 +16,6 @@ import org.telegram.telegrambots.meta.generics.TelegramClient;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.NoSuchElementException;
 
 @Service
 public class OnboardingService {
@@ -77,7 +76,8 @@ public class OnboardingService {
         if(callback.startsWith("City_")){
             long cityId = Long.parseLong(callback.replace("City_", ""));
 
-            UserSettings userSettings = new UserSettings();
+            UserSettings userSettings = userSettingsRepository.findByChatId(chatId)
+                            .orElse(new UserSettings());
 
             userSettings.setChatId(chatId);
             userSettings.setCityId(cityId);
@@ -121,6 +121,8 @@ public class OnboardingService {
 
             user.setDistrictId(districtId);
 
+            userSettingsRepository.save(user);
+
             List<InlineKeyboardRow> rows = new ArrayList<>();
 
             InlineKeyboardButton buttonTrue = InlineKeyboardButton.builder()
@@ -151,6 +153,55 @@ public class OnboardingService {
             } catch (TelegramApiException ex){
                 ex.printStackTrace();
             }
+        } else if (callback.startsWith("Neighboring_")) {
+            boolean neighboringChoose = Boolean.parseBoolean(callback.replace("Neighboring_", ""));
+
+            UserSettings user = userSettingsRepository.findByChatId(chatId)
+                    .orElseThrow();
+
+            user.setSubscribeToNeighboring(neighboringChoose);
+
+            userSettingsRepository.save(user);
+
+            List<InlineKeyboardRow> rows = new ArrayList<>();
+
+            InlineKeyboardButton buttonTrue = InlineKeyboardButton.builder()
+                    .text("Так")
+                    .callbackData("Unofficial_true")
+                    .build();
+
+            InlineKeyboardButton buttonFalse = InlineKeyboardButton.builder()
+                    .text("Ні")
+                    .callbackData("Unofficial_false")
+                    .build();
+
+            rows.add(new InlineKeyboardRow(buttonTrue));
+            rows.add(new InlineKeyboardRow(buttonFalse));
+
+            InlineKeyboardMarkup markup = InlineKeyboardMarkup.builder()
+                    .keyboard(rows)
+                    .build();
+
+            SendMessage unofficialSelection = SendMessage.builder()
+                    .chatId(chatId)
+                    .text("Чи хочете ви отримувати повідомлення з неофіційних джерел?")
+                    .replyMarkup(markup)
+                    .build();
+
+            try {
+                telegramClient.execute(unofficialSelection);
+            } catch (TelegramApiException ex){
+                ex.printStackTrace();
+            }
+        } else if (callback.startsWith("Unofficial_")){
+            boolean unofficialChoose = Boolean.parseBoolean(callback.replace("Unofficial_", ""));
+
+            UserSettings user = userSettingsRepository.findByChatId(chatId)
+                    .orElseThrow();
+
+            user.setUnofficialEnabled(unofficialChoose);
+
+            userSettingsRepository.save(user);
         }
     }
 

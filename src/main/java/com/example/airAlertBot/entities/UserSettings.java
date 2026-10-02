@@ -11,6 +11,7 @@ public class UserSettings {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
+    @Column(unique = true)
     private Long chatId;
 
     private Long cityId;
