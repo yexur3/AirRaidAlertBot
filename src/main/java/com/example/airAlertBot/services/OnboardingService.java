@@ -42,6 +42,10 @@ public class OnboardingService {
             e.printStackTrace();
         }
 
+        startSettingsWithCity(chatId, telegramClient);
+    }
+
+    public void startSettingsWithCity(long chatId, TelegramClient telegramClient){
         List<City> cityList = cityRepository.findAll();
         List<InlineKeyboardRow> rows = new ArrayList<>();
 
@@ -81,6 +85,7 @@ public class OnboardingService {
 
             userSettings.setChatId(chatId);
             userSettings.setCityId(cityId);
+            userSettings.setDistrictId(null);
 
             userSettingsRepository.save(userSettings);
 
@@ -202,6 +207,34 @@ public class OnboardingService {
             user.setUnofficialEnabled(unofficialChoose);
 
             userSettingsRepository.save(user);
+
+            City city = cityRepository.findById(user.getCityId()).orElseThrow();
+            District district = districtRepository.findById(user.getDistrictId()).orElseThrow();
+
+
+            SendMessage lastMessage = SendMessage.builder()
+                    .chatId(chatId)
+                    .text("""
+                            ✅ Налаштування збережено!
+                            Місто: %s
+                            Район: %s
+                            Сусідні райони: %s
+                            Неофіційні повідомлення: %s
+                            
+                            ⚠️ Важливо:
+                            • Цей бот не замінює офіційні сигнали тривоги — завжди дій за офіційними інструкціями.
+                            • Відсутність повідомлення від бота не означає відсутність небезпеки.
+                            • Неофіційні повідомлення позначаються окремо і не є підтвердженою інформацією.
+                            
+                            Змінити налаштування можна командою /settings.
+                            """.formatted(city.getName(), district.getName(), user.isSubscribeToNeighboring() ? "Так" : "Ні", user.isUnofficialEnabled() ? "Так" : "Ні"))
+                    .build();
+
+            try {
+                telegramClient.execute(lastMessage);
+            } catch (TelegramApiException ex){
+                ex.printStackTrace();
+            }
         }
     }
 

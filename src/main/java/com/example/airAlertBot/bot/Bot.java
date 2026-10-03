@@ -24,6 +24,8 @@ public class Bot implements LongPollingSingleThreadUpdateConsumer {
 
             if(messageText.equals("/start")){
                 onboardingService.handleStart(chatId, telegramClient);
+            } else if (messageText.equals("/settings")) {
+                onboardingService.startSettingsWithCity(chatId, telegramClient);
             }
         } else if (update.hasCallbackQuery()){
             String callback = update.getCallbackQuery().getData();
