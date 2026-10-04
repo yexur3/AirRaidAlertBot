@@ -2,6 +2,8 @@ package com.example.airAlertBot.message_processing.kyiv;
 
 import com.example.airAlertBot.enums.AlertEventType;
 import com.example.airAlertBot.enums.AlertScope;
+import com.example.airAlertBot.enums.DangerLevel;
+import com.example.airAlertBot.enums.Reason;
 import com.example.airAlertBot.message_processing.AlertInfo;
 import com.example.airAlertBot.message_processing.MessageProcessingFromTelegramChannels;
 
@@ -27,6 +29,15 @@ public class RealKyivMessageProcessing implements MessageProcessingFromTelegramC
             scope = AlertScope.CITY_AND_REGION;
         }
 
-        return new AlertInfo(eventType, scope);
+        DangerLevel dangerLevel = null;
+        if (rawMessageText.contains("Жовтий рівень")) {
+            dangerLevel = DangerLevel.YELLOW;
+        } else if (rawMessageText.contains("Червоний рівень")) {
+            dangerLevel = DangerLevel.RED;
+        }
+
+        Reason reason = rawMessageText.contains("БпЛА") ? Reason.DRONES : null;
+
+        return new AlertInfo(eventType, scope, dangerLevel, reason);
     }
 }

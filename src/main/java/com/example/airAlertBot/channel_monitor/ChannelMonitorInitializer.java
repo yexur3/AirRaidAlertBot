@@ -1,6 +1,7 @@
 package com.example.airAlertBot.channel_monitor;
 
 import com.example.airAlertBot.entities.UserSettings;
+import com.example.airAlertBot.repositories.CityRepository;
 import com.example.airAlertBot.repositories.MonitoredChannelRepository;
 import com.example.airAlertBot.repositories.UserSettingsRepository;
 import it.tdlight.Init;
@@ -27,13 +28,16 @@ public class ChannelMonitorInitializer implements CommandLineRunner {
     private final MonitoredChannelRepository monitoredChannelRepository;
     private final TelegramClient telegramClient;
     private final UserSettingsRepository userSettingsRepository;
+    private final CityRepository cityRepository;
 
     public ChannelMonitorInitializer(MonitoredChannelRepository monitoredChannelRepository,
                                      TelegramClient telegramClient,
-                                     UserSettingsRepository userSettingsRepository){
+                                     UserSettingsRepository userSettingsRepository,
+                                     CityRepository cityRepository){
         this.monitoredChannelRepository = monitoredChannelRepository;
         this.telegramClient = telegramClient;
         this.userSettingsRepository = userSettingsRepository;
+        this.cityRepository = cityRepository;
     }
 
     @Override
@@ -54,6 +58,6 @@ public class ChannelMonitorInitializer implements CommandLineRunner {
 
         var authenticationData = AuthenticationSupplier.consoleLogin();
 
-        new ChannelMonitorApp(clientBuilder, authenticationData, monitoredChannelRepository, telegramClient, userSettingsRepository);
+        new ChannelMonitorApp(clientBuilder, authenticationData, monitoredChannelRepository, telegramClient, userSettingsRepository, cityRepository);
     }
 }
