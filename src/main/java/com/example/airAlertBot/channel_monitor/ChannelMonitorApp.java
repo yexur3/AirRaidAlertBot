@@ -2,6 +2,10 @@ package com.example.airAlertBot.channel_monitor;
 
 import com.example.airAlertBot.entities.MonitoredChannel;
 import com.example.airAlertBot.entities.UserSettings;
+import com.example.airAlertBot.enums.ChannelsId;
+import com.example.airAlertBot.message_processing.AlertInfo;
+import com.example.airAlertBot.message_processing.MessageProcessingFromTelegramChannels;
+import com.example.airAlertBot.message_processing.MessageStrategyFactory;
 import com.example.airAlertBot.repositories.MonitoredChannelRepository;
 import com.example.airAlertBot.repositories.UserSettingsRepository;
 import it.tdlight.client.ConsoleInteractiveAuthenticationData;
@@ -59,13 +63,13 @@ public class ChannelMonitorApp implements AutoCloseable{
 
         MonitoredChannel monitoredChannel = monitoredChannelOpt.get();
 
-        String text = extractText(update.message.content);
+        String text = extractText(update.message.content, monitoredChannel.getChannelsId());
 
         List<UserSettings> users = userSettingsRepository.findAll();
 
         for (var user : users){
 
-            if (user.getCityId() == monitoredChannel.getCityId()){
+            if (user.getCityId() != null && user.getCityId() == monitoredChannel.getCityId()){
                 SendMessage sendMessage = SendMessage.builder()
                         .chatId(user.getChatId())
                         .text(text)
@@ -82,16 +86,21 @@ public class ChannelMonitorApp implements AutoCloseable{
         System.out.println("Received message from monitored chat (" + monitoredChannel.getType() + "): " + text);
     }
 
-    private String extractText(TdApi.MessageContent content){
+    private AlertInfo extractText(TdApi.MessageContent content, ChannelsId channelsId){
+        String rawText;
+
         if(content instanceof TdApi.MessageText messageText){
-            return messageText.text.text;
+            rawText = messageText.text.text;
         } else if (content instanceof TdApi.MessagePhoto photo){
-            return photo.caption.text;
+            rawText = photo.caption.text;
         } else if (content instanceof TdApi.MessageVideo video){
-            return video.caption.text;
+            rawText = video.caption.text;
         } else {
             return "Can't resolve type of text";
         }
+
+        MessageProcessingFromTelegramChannels strategy = MessageStrategyFactory.getChannelFromSends(channelsId);
+        return strategy.execute(rawText);
     }
 
     private void openMonitoredChannels() {
