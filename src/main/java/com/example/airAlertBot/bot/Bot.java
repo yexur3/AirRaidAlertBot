@@ -11,8 +11,8 @@ public class Bot implements LongPollingSingleThreadUpdateConsumer {
     private final TelegramClient telegramClient;
     private final OnboardingService onboardingService;
 
-    public Bot(String token, OnboardingService onboardingService){
-        this.telegramClient = new OkHttpTelegramClient(token);
+    public Bot(OnboardingService onboardingService, TelegramClient telegramClient){
+        this.telegramClient = telegramClient;
         this.onboardingService = onboardingService;
     }
 

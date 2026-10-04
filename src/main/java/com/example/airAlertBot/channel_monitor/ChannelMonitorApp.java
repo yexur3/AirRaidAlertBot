@@ -1,11 +1,16 @@
 package com.example.airAlertBot.channel_monitor;
 
 import com.example.airAlertBot.entities.MonitoredChannel;
+import com.example.airAlertBot.entities.UserSettings;
 import com.example.airAlertBot.repositories.MonitoredChannelRepository;
+import com.example.airAlertBot.repositories.UserSettingsRepository;
 import it.tdlight.client.ConsoleInteractiveAuthenticationData;
 import it.tdlight.client.SimpleTelegramClient;
 import it.tdlight.client.SimpleTelegramClientBuilder;
 import it.tdlight.jni.TdApi;
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+import org.telegram.telegrambots.meta.generics.TelegramClient;
 
 import java.util.List;
 import java.util.Optional;
@@ -14,9 +19,16 @@ public class ChannelMonitorApp implements AutoCloseable{
 
     private final SimpleTelegramClient client;
     private final MonitoredChannelRepository monitoredChannelRepository;
+    private final TelegramClient telegramClient;
+    private final UserSettingsRepository userSettingsRepository;
 
-    public ChannelMonitorApp(SimpleTelegramClientBuilder clientBuilder, ConsoleInteractiveAuthenticationData authenticationData, MonitoredChannelRepository monitoredChannelRepository){
+    public ChannelMonitorApp(SimpleTelegramClientBuilder clientBuilder, ConsoleInteractiveAuthenticationData authenticationData,
+                             MonitoredChannelRepository monitoredChannelRepository,
+                             TelegramClient telegramClient,
+                             UserSettingsRepository userSettingsRepository){
         this.monitoredChannelRepository = monitoredChannelRepository;
+        this.telegramClient = telegramClient;
+        this.userSettingsRepository = userSettingsRepository;
 
         clientBuilder.addUpdateHandler(TdApi.UpdateAuthorizationState.class, this::onUpdateAuthorizationState);
         clientBuilder.addUpdateHandler(TdApi.UpdateNewMessage.class, this::onUpdateNewMessage);
@@ -49,6 +61,24 @@ public class ChannelMonitorApp implements AutoCloseable{
 
         String text = extractText(update.message.content);
 
+        List<UserSettings> users = userSettingsRepository.findAll();
+
+        for (var user : users){
+
+            if (Long.compare(user.getCityId(), monitoredChannel.getCityId()) == 0){
+                SendMessage sendMessage = SendMessage.builder()
+                        .chatId(user.getChatId())
+                        .text(text)
+                        .build();
+
+                try {
+                    telegramClient.execute(sendMessage);
+                } catch (TelegramApiException ex){
+                    ex.printStackTrace();
+                }
+            }
+
+        }
         System.out.println("Received message from monitored chat (" + monitoredChannel.getType() + "): " + text);
     }
 

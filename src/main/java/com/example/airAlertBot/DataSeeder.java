@@ -3,6 +3,7 @@ package com.example.airAlertBot;
 import com.example.airAlertBot.entities.City;
 import com.example.airAlertBot.entities.District;
 import com.example.airAlertBot.entities.MonitoredChannel;
+import com.example.airAlertBot.enums.ChannelsId;
 import com.example.airAlertBot.enums.Type;
 import com.example.airAlertBot.repositories.CityRepository;
 import com.example.airAlertBot.repositories.DistrictRepository;
@@ -75,17 +76,23 @@ public class DataSeeder implements CommandLineRunner {
             MonitoredChannel monitoredChannel = new MonitoredChannel();
             monitoredChannel.setTelegramChatId(-1001181169156L);
             monitoredChannel.setType(Type.UNOFFICIAL);
+            monitoredChannel.setCityId(1);
+            monitoredChannel.setChannelsId(ChannelsId.REALKYIV);
             monitoredChannelRepository.save(monitoredChannel);
-
-            MonitoredChannel me = new MonitoredChannel();
-            me.setTelegramChatId(806409758);
-            me.setType(Type.OFFICIAL);
-            monitoredChannelRepository.save(me);
 
             MonitoredChannel monitoredChannel1 = new MonitoredChannel();
             monitoredChannel1.setTelegramChatId(-1001223955273L);
             monitoredChannel1.setType(Type.OFFICIAL);
+            monitoredChannel1.setChannelsId(ChannelsId.POVITRYANISYLYZSUKRAINE);
             monitoredChannelRepository.save(monitoredChannel1);
+
+            MonitoredChannel channelForChernihiv = new MonitoredChannel();
+            channelForChernihiv.setTelegramChatId(-1001238700656L);
+            channelForChernihiv.setType(Type.OFFICIAL);
+            channelForChernihiv.setCityId(2);
+            channelForChernihiv.setChannelsId(ChannelsId.LOVECHERNIHIV);
+            monitoredChannelRepository.save(channelForChernihiv);
+
         }
     }
 }
