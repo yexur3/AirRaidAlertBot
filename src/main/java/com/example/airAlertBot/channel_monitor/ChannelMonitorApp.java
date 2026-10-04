@@ -65,7 +65,7 @@ public class ChannelMonitorApp implements AutoCloseable{
 
         for (var user : users){
 
-            if (Long.compare(user.getCityId(), monitoredChannel.getCityId()) == 0){
+            if (user.getCityId() == monitoredChannel.getCityId()){
                 SendMessage sendMessage = SendMessage.builder()
                         .chatId(user.getChatId())
                         .text(text)

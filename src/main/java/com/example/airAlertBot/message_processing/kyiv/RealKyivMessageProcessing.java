@@ -5,6 +5,6 @@ import com.example.airAlertBot.message_processing.MessageProcessingFromTelegramC
 public class RealKyivMessageProcessing implements MessageProcessingFromTelegramChannels {
     @Override
     public String execute() {
-        
+        return "s";
     }
 }
