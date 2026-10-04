@@ -2,8 +2,11 @@ package com.example.airAlertBot;
 
 import com.example.airAlertBot.entities.City;
 import com.example.airAlertBot.entities.District;
+import com.example.airAlertBot.entities.MonitoredChannel;
+import com.example.airAlertBot.enums.Type;
 import com.example.airAlertBot.repositories.CityRepository;
 import com.example.airAlertBot.repositories.DistrictRepository;
+import com.example.airAlertBot.repositories.MonitoredChannelRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
@@ -14,10 +17,13 @@ public class DataSeeder implements CommandLineRunner {
 
     private final CityRepository cityRepository;
     private final DistrictRepository districtRepository;
+    private final MonitoredChannelRepository monitoredChannelRepository;
 
-    public DataSeeder(CityRepository cityRepository, DistrictRepository districtRepository){
+    public DataSeeder(CityRepository cityRepository, DistrictRepository districtRepository,
+                      MonitoredChannelRepository monitoredChannelRepository){
         this.cityRepository = cityRepository;
         this.districtRepository = districtRepository;
+        this.monitoredChannelRepository = monitoredChannelRepository;
     }
 
     @Override
@@ -61,6 +67,25 @@ public class DataSeeder implements CommandLineRunner {
                 districtRepository.save(district);
             }
 
+        }
+
+        if (monitoredChannelRepository.count() == 0){
+
+
+            MonitoredChannel monitoredChannel = new MonitoredChannel();
+            monitoredChannel.setTelegramChatId(-1001181169156L);
+            monitoredChannel.setType(Type.UNOFFICIAL);
+            monitoredChannelRepository.save(monitoredChannel);
+
+            MonitoredChannel me = new MonitoredChannel();
+            me.setTelegramChatId(806409758);
+            me.setType(Type.OFFICIAL);
+            monitoredChannelRepository.save(me);
+
+            MonitoredChannel monitoredChannel1 = new MonitoredChannel();
+            monitoredChannel1.setTelegramChatId(-1001223955273L);
+            monitoredChannel1.setType(Type.OFFICIAL);
+            monitoredChannelRepository.save(monitoredChannel1);
         }
     }
 }
