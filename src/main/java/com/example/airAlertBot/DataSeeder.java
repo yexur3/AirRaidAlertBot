@@ -80,11 +80,11 @@ public class DataSeeder implements CommandLineRunner {
             monitoredChannel.setChannelsId(ChannelsId.REALKYIV);
             monitoredChannelRepository.save(monitoredChannel);
 
-            MonitoredChannel monitoredChannel1 = new MonitoredChannel();
-            monitoredChannel1.setTelegramChatId(-1001223955273L);
-            monitoredChannel1.setType(Type.OFFICIAL);
-            monitoredChannel1.setChannelsId(ChannelsId.POVITRYANISYLYZSUKRAINE);
-            monitoredChannelRepository.save(monitoredChannel1);
+//            MonitoredChannel monitoredChannel1 = new MonitoredChannel();
+//            monitoredChannel1.setTelegramChatId(-1001223955273L);
+//            monitoredChannel1.setType(Type.OFFICIAL);
+//            monitoredChannel1.setChannelsId(ChannelsId.POVITRYANISYLYZSUKRAINE);
+//            monitoredChannelRepository.save(monitoredChannel1);
 
             MonitoredChannel channelForChernihiv = new MonitoredChannel();
             channelForChernihiv.setTelegramChatId(-1001238700656L);
