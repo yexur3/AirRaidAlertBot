@@ -56,6 +56,7 @@ public class OnboardingService {
             endingOfSettings(chatId, callback, telegramClient);
         }
     }
+    
 
     public void citySettings(long chatId, TelegramClient telegramClient){
         List<City> cityList = cityRepository.findAll();
