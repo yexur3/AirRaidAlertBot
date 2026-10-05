@@ -1,7 +1,6 @@
 package com.example.airAlertBot.bot;
 
 import com.example.airAlertBot.services.OnboardingService;
-import org.telegram.telegrambots.client.okhttp.OkHttpTelegramClient;
 import org.telegram.telegrambots.longpolling.util.LongPollingSingleThreadUpdateConsumer;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
@@ -25,13 +24,13 @@ public class Bot implements LongPollingSingleThreadUpdateConsumer {
             if(messageText.equals("/start")){
                 onboardingService.handleStart(chatId, telegramClient);
             } else if (messageText.equals("/settings")) {
-                onboardingService.startSettingsWithCity(chatId, telegramClient);
+                onboardingService.citySettings(chatId, telegramClient);
             }
         } else if (update.hasCallbackQuery()){
             String callback = update.getCallbackQuery().getData();
             long chatId = update.getCallbackQuery().getMessage().getChatId();
 
-            onboardingService.handleCallback(chatId, callback, telegramClient);
+            onboardingService.settings(chatId, callback, telegramClient);
         }
     }
 }

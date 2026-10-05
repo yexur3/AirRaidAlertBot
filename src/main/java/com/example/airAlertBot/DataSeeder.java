@@ -33,6 +33,7 @@ public class DataSeeder implements CommandLineRunner {
             City kyivCity = new City();
 
             kyivCity.setName("Київ");
+            kyivCity.setOblastName("Київська");
 
             cityRepository.save(kyivCity);
 
@@ -52,6 +53,7 @@ public class DataSeeder implements CommandLineRunner {
             City chernihivCity = new City();
 
             chernihivCity.setName("Чернігів");
+            chernihivCity.setOblastName("Чернігівська");
 
             cityRepository.save(chernihivCity);
 
