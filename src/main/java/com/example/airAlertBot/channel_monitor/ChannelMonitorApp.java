@@ -3,6 +3,7 @@ package com.example.airAlertBot.channel_monitor;
 import com.example.airAlertBot.entities.City;
 import com.example.airAlertBot.entities.MonitoredChannel;
 import com.example.airAlertBot.entities.UserSettings;
+import com.example.airAlertBot.enums.AlertScope;
 import com.example.airAlertBot.enums.ChannelsId;
 import com.example.airAlertBot.message_processing.AlertInfo;
 import com.example.airAlertBot.message_processing.AlertMessageFormater;
@@ -71,11 +72,13 @@ public class ChannelMonitorApp implements AutoCloseable{
 
         City city = cityRepository.findById(monitoredChannel.getCityId()).orElseThrow();
 
-        String text = extractText(update.message.content, monitoredChannel.getChannelsId(), city.getName());
+        AlertInfo alertInfo = extractText(update.message.content, monitoredChannel.getChannelsId());
 
-        if (text == null) {
+        if (alertInfo == null || alertInfo.scope() == AlertScope.REGION_ONLY) {
             return;
         }
+
+        String text = AlertMessageFormater.format(alertInfo, city.getName());
 
         List<UserSettings> users = userSettingsRepository.findAll();
 
@@ -98,7 +101,7 @@ public class ChannelMonitorApp implements AutoCloseable{
         System.out.println("Received message from monitored chat (" + monitoredChannel.getType() + "): " + text);
     }
 
-    private String extractText(TdApi.MessageContent content, ChannelsId channelsId, String cityName){
+    private AlertInfo extractText(TdApi.MessageContent content, ChannelsId channelsId){
         String rawText;
 
         if(content instanceof TdApi.MessageText messageText){
@@ -112,13 +115,7 @@ public class ChannelMonitorApp implements AutoCloseable{
         }
 
         MessageProcessingFromTelegramChannels strategy = MessageStrategyFactory.getChannelFromSends(channelsId);
-        AlertInfo alertInfo = strategy.execute(rawText);
-
-        if (alertInfo == null){
-            return null;
-        }
-
-        return AlertMessageFormater.format(alertInfo, cityName);
+        return strategy.execute(rawText);
     }
 
     private void openMonitoredChannels() {
