@@ -2,9 +2,11 @@ package com.example.airAlertBot.services;
 
 import com.example.airAlertBot.entities.City;
 import com.example.airAlertBot.entities.CityDistrict;
+import com.example.airAlertBot.entities.Region;
 import com.example.airAlertBot.entities.UserSettings;
 import com.example.airAlertBot.repositories.CityRepository;
 import com.example.airAlertBot.repositories.CityDistrictRepository;
+import com.example.airAlertBot.repositories.RegionRepository;
 import com.example.airAlertBot.repositories.UserSettingsRepository;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -15,7 +17,9 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class OnboardingService {
@@ -23,41 +27,90 @@ public class OnboardingService {
     private final CityRepository cityRepository;
     private final CityDistrictRepository cityDistrictRepository;
     private final UserSettingsRepository userSettingsRepository;
+    private final TelegramClient telegramClient;
+    private final RegionRepository regionRepository;
 
-    public OnboardingService(CityRepository cityRepository, CityDistrictRepository cityDistrictRepository, UserSettingsRepository userSettingsRepository){
+    public OnboardingService(CityRepository cityRepository, CityDistrictRepository cityDistrictRepository,
+                             UserSettingsRepository userSettingsRepository, TelegramClient telegramClient,
+                             RegionRepository regionRepository){
         this.cityRepository = cityRepository;
         this.cityDistrictRepository = cityDistrictRepository;
         this.userSettingsRepository = userSettingsRepository;
+        this.telegramClient = telegramClient;
+        this.regionRepository = regionRepository;
     }
 
-    public void handleStart(long chatId, TelegramClient telegramClient){
-        SendMessage send = SendMessage.builder()
+    private InlineKeyboardMarkup makeKeyboard(LinkedHashMap<String, String> data){
+        List<InlineKeyboardRow> rows = new ArrayList<>();
+
+
+        for(var item : data.entrySet()){
+            InlineKeyboardButton button = InlineKeyboardButton.builder()
+                    .text(item.getKey())
+                    .callbackData(item.getValue())
+                    .build();
+
+            InlineKeyboardRow row = new InlineKeyboardRow(button);
+            rows.add(row);
+        }
+
+        InlineKeyboardMarkup markup = InlineKeyboardMarkup.builder()
+                .keyboard(rows)
+                .build();
+
+        return markup;
+    }
+
+    private void sendMessage(long chatId, String text, InlineKeyboardMarkup markup){
+        SendMessage sendMessage = SendMessage.builder()
                 .chatId(chatId)
-                .text("Привіт! Я бот для сповіщень про повітряні тривоги.")
+                .text(text)
+                .replyMarkup(markup)
                 .build();
 
         try {
-            telegramClient.execute(send);
-        } catch (TelegramApiException e){
-            e.printStackTrace();
+            telegramClient.execute(sendMessage);
+        } catch (TelegramApiException ex){
+            ex.printStackTrace();
         }
-
-        citySettings(chatId, telegramClient);
     }
 
-    public void settings(long chatId, String callback, TelegramClient telegramClient){
-        if (callback.startsWith("City_")){
-            districtSettings(chatId, callback, telegramClient);
+    public void handleCallback(long chatId, String callback){
+        if (callback.startsWith("Region_")){
+            districtSettings(chatId, callback);
         } else if (callback.startsWith("District_")) {
-            neighboringSettings(chatId, callback, telegramClient);
+            neighboringSettings(chatId, callback);
         } else if (callback.startsWith("Neighboring_")) {
-            unofficialSettings(chatId, callback, telegramClient);
+            unofficialSettings(chatId, callback);
         } else if (callback.startsWith("Unofficial_")) {
-            endingOfSettings(chatId, callback, telegramClient);
+            endingOfSettings(chatId, callback);
         }
     }
 
-    public void citySettings(long chatId, TelegramClient telegramClient){
+    public void handleStart(long chatId){
+        String text = "Привіт! Я бот для сповіщень про повітряні тривоги.";
+
+        sendMessage(chatId, text, null);
+
+        showRegions(chatId);
+    }
+
+    public void showRegions(long chatId) {
+        List<Region> regions = regionRepository.findAll();
+        LinkedHashMap<String, String> data = new LinkedHashMap<>();
+
+        for (var item : regions){
+            data.put(item.getName(), "Region_" + item.getId());
+        }
+
+        InlineKeyboardMarkup markup = makeKeyboard(data);
+
+        String text = "Виберіть вашу область";
+
+        sendMessage(chatId, text, markup);
+    }
+
+    public void citySettings(long chatId){
         List<City> cityList = cityRepository.findAll();
         List<InlineKeyboardRow> rows = new ArrayList<>();
 
@@ -88,7 +141,7 @@ public class OnboardingService {
         }
     }
 
-    public void districtSettings(long chatId, String callback, TelegramClient telegramClient){
+    public void districtSettings(long chatId, String callback){
         long cityId = Long.parseLong(callback.replace("City_", ""));
 
         UserSettings userSettings = userSettingsRepository.findByChatId(chatId)
@@ -130,7 +183,7 @@ public class OnboardingService {
         }
     }
 
-    public void neighboringSettings(long chatId, String callback, TelegramClient telegramClient){
+    public void neighboringSettings(long chatId, String callback){
         long districtId = Long.parseLong(callback.replace("District_", ""));
 
         UserSettings user = userSettingsRepository.findByChatId(chatId)
@@ -172,7 +225,7 @@ public class OnboardingService {
         }
     }
 
-    public void unofficialSettings(long chatId, String callback, TelegramClient telegramClient){
+    public void unofficialSettings(long chatId, String callback){
         boolean neighboringChoose = Boolean.parseBoolean(callback.replace("Neighboring_", ""));
 
         UserSettings user = userSettingsRepository.findByChatId(chatId)
@@ -214,7 +267,7 @@ public class OnboardingService {
         }
     }
 
-    public void endingOfSettings(long chatId, String callback, TelegramClient telegramClient){
+    public void endingOfSettings(long chatId, String callback){
         boolean unofficialChoose = Boolean.parseBoolean(callback.replace("Unofficial_", ""));
 
         UserSettings user = userSettingsRepository.findByChatId(chatId)

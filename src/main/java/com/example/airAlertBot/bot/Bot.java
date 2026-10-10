@@ -22,15 +22,15 @@ public class Bot implements LongPollingSingleThreadUpdateConsumer {
             long chatId = update.getMessage().getChatId();
 
             if(messageText.equals("/start")){
-                onboardingService.handleStart(chatId, telegramClient);
+                onboardingService.handleStart(chatId);
             } else if (messageText.equals("/settings")) {
-                onboardingService.citySettings(chatId, telegramClient);
+                onboardingService.showRegions(chatId);
             }
         } else if (update.hasCallbackQuery()){
             String callback = update.getCallbackQuery().getData();
             long chatId = update.getCallbackQuery().getMessage().getChatId();
 
-            onboardingService.settings(chatId, callback, telegramClient);
+            onboardingService.handleCallback(chatId, callback);
         }
     }
 }

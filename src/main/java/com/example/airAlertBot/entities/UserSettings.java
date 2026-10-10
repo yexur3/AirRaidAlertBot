@@ -14,9 +14,13 @@ public class UserSettings {
     @Column(unique = true)
     private Long chatId;
 
+    private Long regionId;
+
+    private Long raionId;
+
     private Long cityId;
 
-    private Long districtId;
+    private Long cityDistrictId;
 
     private boolean subscribeToNeighboring;
 
