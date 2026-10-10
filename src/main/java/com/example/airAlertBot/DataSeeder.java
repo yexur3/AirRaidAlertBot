@@ -1,12 +1,12 @@
 package com.example.airAlertBot;
 
 import com.example.airAlertBot.entities.City;
-import com.example.airAlertBot.entities.District;
+import com.example.airAlertBot.entities.CityDistrict;
 import com.example.airAlertBot.entities.MonitoredChannel;
 import com.example.airAlertBot.enums.ChannelsId;
 import com.example.airAlertBot.enums.Type;
 import com.example.airAlertBot.repositories.CityRepository;
-import com.example.airAlertBot.repositories.DistrictRepository;
+import com.example.airAlertBot.repositories.CityDistrictRepository;
 import com.example.airAlertBot.repositories.MonitoredChannelRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
@@ -17,13 +17,13 @@ import java.util.Arrays;
 public class DataSeeder implements CommandLineRunner {
 
     private final CityRepository cityRepository;
-    private final DistrictRepository districtRepository;
+    private final CityDistrictRepository cityDistrictRepository;
     private final MonitoredChannelRepository monitoredChannelRepository;
 
-    public DataSeeder(CityRepository cityRepository, DistrictRepository districtRepository,
+    public DataSeeder(CityRepository cityRepository, CityDistrictRepository cityDistrictRepository,
                       MonitoredChannelRepository monitoredChannelRepository){
         this.cityRepository = cityRepository;
-        this.districtRepository = districtRepository;
+        this.cityDistrictRepository = cityDistrictRepository;
         this.monitoredChannelRepository = monitoredChannelRepository;
     }
 
@@ -42,12 +42,12 @@ public class DataSeeder implements CommandLineRunner {
             Arrays.sort(districts);
 
             for(var districtName : districts){
-                District district = new District();
+                CityDistrict cityDistrict = new CityDistrict();
 
-                district.setName(districtName);
-                district.setCityId(kyivCity.getId());
+                cityDistrict.setName(districtName);
+                cityDistrict.setCityId(kyivCity.getId());
 
-                districtRepository.save(district);
+                cityDistrictRepository.save(cityDistrict);
             }
 
             City chernihivCity = new City();
@@ -62,12 +62,12 @@ public class DataSeeder implements CommandLineRunner {
             Arrays.sort(districtsChe);
 
             for(var districtName : districtsChe){
-                District district = new District();
+                CityDistrict cityDistrict = new CityDistrict();
 
-                district.setName(districtName);
-                district.setCityId(chernihivCity.getId());
+                cityDistrict.setName(districtName);
+                cityDistrict.setCityId(chernihivCity.getId());
 
-                districtRepository.save(district);
+                cityDistrictRepository.save(cityDistrict);
             }
 
         }

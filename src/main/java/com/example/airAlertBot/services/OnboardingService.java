@@ -1,10 +1,10 @@
 package com.example.airAlertBot.services;
 
 import com.example.airAlertBot.entities.City;
-import com.example.airAlertBot.entities.District;
+import com.example.airAlertBot.entities.CityDistrict;
 import com.example.airAlertBot.entities.UserSettings;
 import com.example.airAlertBot.repositories.CityRepository;
-import com.example.airAlertBot.repositories.DistrictRepository;
+import com.example.airAlertBot.repositories.CityDistrictRepository;
 import com.example.airAlertBot.repositories.UserSettingsRepository;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -21,12 +21,12 @@ import java.util.List;
 public class OnboardingService {
 
     private final CityRepository cityRepository;
-    private final DistrictRepository districtRepository;
+    private final CityDistrictRepository cityDistrictRepository;
     private final UserSettingsRepository userSettingsRepository;
 
-    public OnboardingService(CityRepository cityRepository, DistrictRepository districtRepository, UserSettingsRepository userSettingsRepository){
+    public OnboardingService(CityRepository cityRepository, CityDistrictRepository cityDistrictRepository, UserSettingsRepository userSettingsRepository){
         this.cityRepository = cityRepository;
-        this.districtRepository = districtRepository;
+        this.cityDistrictRepository = cityDistrictRepository;
         this.userSettingsRepository = userSettingsRepository;
     }
 
@@ -100,10 +100,10 @@ public class OnboardingService {
 
         userSettingsRepository.save(userSettings);
 
-        List<District> districts = districtRepository.findByCityId(cityId);
+        List<CityDistrict> cityDistricts = cityDistrictRepository.findByCityId(cityId);
         List<InlineKeyboardRow> rows = new ArrayList<>();
 
-        for (var district : districts){
+        for (var district : cityDistricts){
             InlineKeyboardButton button = InlineKeyboardButton.builder()
                     .text(district.getName())
                     .callbackData("District_" + district.getId())
@@ -225,7 +225,7 @@ public class OnboardingService {
         userSettingsRepository.save(user);
 
         City city = cityRepository.findById(user.getCityId()).orElseThrow();
-        District district = districtRepository.findById(user.getDistrictId()).orElseThrow();
+        CityDistrict cityDistrict = cityDistrictRepository.findById(user.getDistrictId()).orElseThrow();
 
 
         SendMessage lastMessage = SendMessage.builder()
@@ -243,7 +243,7 @@ public class OnboardingService {
                             • Неофіційні повідомлення позначаються окремо і не є підтвердженою інформацією.
                             
                             Змінити налаштування можна командою /settings.
-                            """.formatted(city.getName(), district.getName(), user.isSubscribeToNeighboring() ? "Так" : "Ні", user.isUnofficialEnabled() ? "Так" : "Ні"))
+                            """.formatted(city.getName(), cityDistrict.getName(), user.isSubscribeToNeighboring() ? "Так" : "Ні", user.isUnofficialEnabled() ? "Так" : "Ні"))
                 .build();
 
         try {

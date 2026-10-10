@@ -1,14 +1,14 @@
 package com.example.airAlertBot.repositories;
 
-import com.example.airAlertBot.entities.District;
+import com.example.airAlertBot.entities.CityDistrict;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
 @Repository
-public interface DistrictRepository extends JpaRepository<District, Long> {
+public interface CityDistrictRepository extends JpaRepository<CityDistrict, Long> {
 
-    List<District> findByCityId(Long cityId);
+    List<CityDistrict> findByCityId(Long cityId);
 
 }

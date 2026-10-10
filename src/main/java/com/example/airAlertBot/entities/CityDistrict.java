@@ -5,18 +5,14 @@ import lombok.Data;
 
 @Entity
 @Data
-public class City {
+public class CityDistrict {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @Column(nullable = false)
     private String name;
 
-    private long raionId;
-
-    @Column(nullable = false)
-    private boolean regionalCenter;
+    private long cityId;
 
 }
