@@ -1,13 +1,9 @@
 package com.example.airAlertBot;
 
-import com.example.airAlertBot.entities.City;
-import com.example.airAlertBot.entities.CityDistrict;
-import com.example.airAlertBot.entities.MonitoredChannel;
+import com.example.airAlertBot.entities.*;
 import com.example.airAlertBot.enums.ChannelsId;
 import com.example.airAlertBot.enums.Type;
-import com.example.airAlertBot.repositories.CityRepository;
-import com.example.airAlertBot.repositories.CityDistrictRepository;
-import com.example.airAlertBot.repositories.MonitoredChannelRepository;
+import com.example.airAlertBot.repositories.*;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
@@ -19,21 +15,74 @@ public class DataSeeder implements CommandLineRunner {
     private final CityRepository cityRepository;
     private final CityDistrictRepository cityDistrictRepository;
     private final MonitoredChannelRepository monitoredChannelRepository;
+    private final RegionRepository regionRepository;
+    private final RaionRepository raionRepository;
 
     public DataSeeder(CityRepository cityRepository, CityDistrictRepository cityDistrictRepository,
-                      MonitoredChannelRepository monitoredChannelRepository){
+                      MonitoredChannelRepository monitoredChannelRepository, RegionRepository regionRepository,
+                      RaionRepository raionRepository){
         this.cityRepository = cityRepository;
         this.cityDistrictRepository = cityDistrictRepository;
         this.monitoredChannelRepository = monitoredChannelRepository;
+        this.regionRepository = regionRepository;
+        this.raionRepository = raionRepository;
     }
 
     @Override
     public void run(String... args) throws Exception {
-        if(cityRepository.count() == 0) {
+        if(regionRepository.count() == 0) {
+
+            Region regionKyiv = new Region();
+            regionKyiv.setName("Київська");
+            regionRepository.save(regionKyiv);
+
+            Region regionChernihiv = new Region();
+            regionChernihiv.setName("Чернігівська");
+            regionRepository.save(regionChernihiv);
+
+            Region kyiv = new Region();
+            kyiv.setName("Київ");
+            regionRepository.save(kyiv);
+
+            String[] chernihivRaions = {"Корюківський", "Ніжинський", "Новгород-Сіверський", "Прилуцький", "Чернігівський"};
+
+            String[] kyivRaions = {"Білоцерківський", "Бориспільський", "Броварський","Бучанський", "Вишгородський", "Обухівський", "Фастівський"};
+
+
+            Raion chernihivRaion = null;
+            for (var raion : chernihivRaions){
+                Raion raionOfRegion = new Raion();
+
+                raionOfRegion.setName(raion);
+                raionOfRegion.setRegionId(regionChernihiv.getId());
+
+                raionRepository.save(raionOfRegion);
+
+                if(raion.equals("Чернігівський")){
+                    chernihivRaion = raionOfRegion;
+                }
+            }
+
+            for(var raion : kyivRaions){
+                Raion raionOfRegion = new Raion();
+
+                raionOfRegion.setName(raion);
+                raionOfRegion.setRegionId(regionKyiv.getId());
+
+                raionRepository.save(raionOfRegion);
+            }
+
+            Raion kyivRaion = new Raion();
+            kyivRaion.setName("Київ");
+            kyivRaion.setRegionId(kyiv.getId());
+            raionRepository.save(kyivRaion);
+
+
             City kyivCity = new City();
 
             kyivCity.setName("Київ");
-            kyivCity.setOblastName("Київська");
+            kyivCity.setRegionalCenter(true);
+            kyivCity.setRaionId(kyivRaion.getId());
 
             cityRepository.save(kyivCity);
 
@@ -53,7 +102,8 @@ public class DataSeeder implements CommandLineRunner {
             City chernihivCity = new City();
 
             chernihivCity.setName("Чернігів");
-            chernihivCity.setOblastName("Чернігівська");
+            chernihivCity.setRegionalCenter(true);
+            chernihivCity.setRaionId(chernihivRaion.getId());
 
             cityRepository.save(chernihivCity);
 

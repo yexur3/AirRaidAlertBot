@@ -11,6 +11,7 @@ public class CityDistrict {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
+    @Column(nullable = false)
     private String name;
 
     private long cityId;
