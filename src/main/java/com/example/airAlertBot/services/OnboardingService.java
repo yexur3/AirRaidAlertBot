@@ -87,6 +87,24 @@ public class OnboardingService {
             user.setCityDistrictId(null);
             userSettingsRepository.save(user);
 
+            Region region = regionRepository.findById(regionId).orElseThrow();
+
+            if (region.getName().equals("м. Київ")) {
+                List<Raion> raions = raionRepository.findByRegionId(regionId);
+                Raion raion = raions.getFirst();
+
+                List<City> cities = cityRepository.findByRaionId(raion.getId());
+                City city = cities.getFirst();
+
+                user.setRaionId(raion.getId());
+                user.setCityId(city.getId());
+
+                userSettingsRepository.save(user);
+
+                showDistricts(chatId, city.getId());
+                return;
+            }
+
             showRaions(chatId, regionId);
             return;
 
@@ -210,7 +228,7 @@ public class OnboardingService {
 
         InlineKeyboardMarkup markup = makeKeyboard(data);
 
-        String text = "Виберіть ваше місто";
+        String text = "Виберіть ваше місто (або найближче до Вас місто з наведених)";
 
         sendMessage(chatId, text, markup);
     }

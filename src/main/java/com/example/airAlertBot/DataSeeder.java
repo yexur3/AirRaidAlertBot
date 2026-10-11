@@ -4,10 +4,14 @@ import com.example.airAlertBot.entities.*;
 import com.example.airAlertBot.enums.ChannelsId;
 import com.example.airAlertBot.enums.Type;
 import com.example.airAlertBot.repositories.*;
+import org.checkerframework.checker.units.qual.C;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Component
 public class DataSeeder implements CommandLineRunner {
@@ -32,24 +36,20 @@ public class DataSeeder implements CommandLineRunner {
     public void run(String... args) throws Exception {
         if(regionRepository.count() == 0) {
 
-            Region regionKyiv = new Region();
-            regionKyiv.setName("Київська область");
-            regionRepository.save(regionKyiv);
-
             Region regionChernihiv = new Region();
             regionChernihiv.setName("Чернігівська область");
             regionRepository.save(regionChernihiv);
 
-            Region kyiv = new Region();
-            kyiv.setName("Київ");
-            regionRepository.save(kyiv);
-
             String[] chernihivRaions = {"Корюківський", "Ніжинський", "Новгород-Сіверський", "Прилуцький", "Чернігівський"};
+            Map<String, List<String>> cities = new HashMap<>(Map.of(
+                    "Корюківський", List.of("Корюківка", "Мена"),
+                    "Ніжинський", List.of("Ніжин", "Бахмач"),
+                    "Новгород-Сіверський", List.of("Новгород-Сіверський", "Семенівка"),
+                    "Прилуцький", List.of("Прилуки", "Ічня"),
+                    "Чернігівський", List.of("Чернігів", "Городня")
+            ));
+            String[] chernihivDistricts = {"Деснянський", "Новозаводський"};
 
-            String[] kyivRaions = {"Білоцерківський", "Бориспільський", "Броварський","Бучанський", "Вишгородський", "Обухівський", "Фастівський"};
-
-
-            Raion chernihivRaion = null;
             for (var raion : chernihivRaions){
                 Raion raionOfRegion = new Raion();
 
@@ -58,10 +58,46 @@ public class DataSeeder implements CommandLineRunner {
 
                 raionRepository.save(raionOfRegion);
 
-                if(raion.equals("Чернігівський")){
-                    chernihivRaion = raionOfRegion;
+                for (var city : cities.get(raion)) {
+                    City cityRegion = new City();
+
+                    cityRegion.setName(city);
+                    cityRegion.setRaionId(raionOfRegion.getId());
+
+                    cityRepository.save(cityRegion);
+
+                    if (city.equals("Чернігів")) {
+                        cityRegion.setRegionalCenter(true);
+
+                        cityRepository.save(cityRegion);
+
+                        for (var district : chernihivDistricts) {
+                            CityDistrict cityDistrict = new CityDistrict();
+
+                            cityDistrict.setName(district);
+                            cityDistrict.setCityId(cityRegion.getId());
+
+                            cityDistrictRepository.save(cityDistrict);
+                        }
+                    }
                 }
             }
+
+            // --------------------------------------------
+
+            Region regionKyiv = new Region();
+            regionKyiv.setName("Київська область");
+            regionRepository.save(regionKyiv);
+
+
+            Region kyiv = new Region();
+            kyiv.setName("м. Київ");
+            regionRepository.save(kyiv);
+
+
+            String[] kyivRaions = {"Білоцерківський", "Бориспільський", "Броварський","Бучанський", "Вишгородський", "Обухівський", "Фастівський"};
+
+
 
             for(var raion : kyivRaions){
                 Raion raionOfRegion = new Raion();
@@ -73,7 +109,7 @@ public class DataSeeder implements CommandLineRunner {
             }
 
             Raion kyivRaion = new Raion();
-            kyivRaion.setName("Київ");
+            kyivRaion.setName("м. Київ");
             kyivRaion.setRegionId(kyiv.getId());
             raionRepository.save(kyivRaion);
 
@@ -99,36 +135,15 @@ public class DataSeeder implements CommandLineRunner {
                 cityDistrictRepository.save(cityDistrict);
             }
 
-            City chernihivCity = new City();
-
-            chernihivCity.setName("Чернігів");
-            chernihivCity.setRegionalCenter(true);
-            chernihivCity.setRaionId(chernihivRaion.getId());
-
-            cityRepository.save(chernihivCity);
-
-            String[] districtsChe = {"Деснянський", "Новозаводський"};
-
-            Arrays.sort(districtsChe);
-
-            for(var districtName : districtsChe){
-                CityDistrict cityDistrict = new CityDistrict();
-
-                cityDistrict.setName(districtName);
-                cityDistrict.setCityId(chernihivCity.getId());
-
-                cityDistrictRepository.save(cityDistrict);
-            }
-
         }
 
         if (monitoredChannelRepository.count() == 0){
 
-
+            City city = cityRepository.findByName("Київ").orElseThrow();
             MonitoredChannel monitoredChannel = new MonitoredChannel();
             monitoredChannel.setTelegramChatId(-1001181169156L);
             monitoredChannel.setType(Type.UNOFFICIAL);
-            monitoredChannel.setCityId(1);
+            monitoredChannel.setCityId(city.getId());
             monitoredChannel.setChannelsId(ChannelsId.REALKYIV);
             monitoredChannelRepository.save(monitoredChannel);
 
@@ -138,10 +153,11 @@ public class DataSeeder implements CommandLineRunner {
 //            monitoredChannel1.setChannelsId(ChannelsId.POVITRYANISYLYZSUKRAINE);
 //            monitoredChannelRepository.save(monitoredChannel1);
 
+            city = cityRepository.findByName("Чернігів").orElseThrow();
             MonitoredChannel channelForChernihiv = new MonitoredChannel();
             channelForChernihiv.setTelegramChatId(-1001238700656L);
             channelForChernihiv.setType(Type.OFFICIAL);
-            channelForChernihiv.setCityId(2);
+            channelForChernihiv.setCityId(city.getId());
             channelForChernihiv.setChannelsId(ChannelsId.LOVECHERNIHIV);
             monitoredChannelRepository.save(channelForChernihiv);
 
