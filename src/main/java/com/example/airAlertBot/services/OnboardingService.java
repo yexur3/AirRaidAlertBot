@@ -1,13 +1,7 @@
 package com.example.airAlertBot.services;
 
-import com.example.airAlertBot.entities.City;
-import com.example.airAlertBot.entities.CityDistrict;
-import com.example.airAlertBot.entities.Region;
-import com.example.airAlertBot.entities.UserSettings;
-import com.example.airAlertBot.repositories.CityRepository;
-import com.example.airAlertBot.repositories.CityDistrictRepository;
-import com.example.airAlertBot.repositories.RegionRepository;
-import com.example.airAlertBot.repositories.UserSettingsRepository;
+import com.example.airAlertBot.entities.*;
+import com.example.airAlertBot.repositories.*;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
@@ -29,15 +23,17 @@ public class OnboardingService {
     private final UserSettingsRepository userSettingsRepository;
     private final TelegramClient telegramClient;
     private final RegionRepository regionRepository;
+    private final RaionRepository raionRepository;
 
     public OnboardingService(CityRepository cityRepository, CityDistrictRepository cityDistrictRepository,
                              UserSettingsRepository userSettingsRepository, TelegramClient telegramClient,
-                             RegionRepository regionRepository){
+                             RegionRepository regionRepository, RaionRepository raionRepository){
         this.cityRepository = cityRepository;
         this.cityDistrictRepository = cityDistrictRepository;
         this.userSettingsRepository = userSettingsRepository;
         this.telegramClient = telegramClient;
         this.regionRepository = regionRepository;
+        this.raionRepository = raionRepository;
     }
 
     private InlineKeyboardMarkup makeKeyboard(LinkedHashMap<String, String> data){
@@ -76,15 +72,94 @@ public class OnboardingService {
     }
 
     public void handleCallback(long chatId, String callback){
+        final UserSettings user = userSettingsRepository.findByChatId(chatId)
+                .orElse(new UserSettings());
+
+        user.setChatId(chatId);
+
+
         if (callback.startsWith("Region_")){
-            districtSettings(chatId, callback);
+
+            long regionId = Long.parseLong(callback.replace("Region_", ""));
+            user.setRegionId(regionId);
+            user.setRaionId(null);
+            user.setCityId(null);
+            user.setCityDistrictId(null);
+            userSettingsRepository.save(user);
+
+            showRaions(chatId, regionId);
+            return;
+
+        } else if (callback.startsWith("Raion_")) {
+
+            long raionId = Long.parseLong(callback.replace("Raion_", ""));
+            user.setRaionId(raionId);
+            userSettingsRepository.save(user);
+
+            showCities(chatId, raionId);
+            return;
+
+        } else if (callback.startsWith("City_")) {
+
+            long cityId = Long.parseLong(callback.replace("City_", ""));
+            user.setCityId(cityId);
+            userSettingsRepository.save(user);
+
+            showDistricts(chatId, cityId);
+            return;
+
         } else if (callback.startsWith("District_")) {
-            neighboringSettings(chatId, callback);
+
+            long districtId = Long.parseLong(callback.replace("District_", ""));
+            user.setCityDistrictId(districtId);
+            userSettingsRepository.save(user);
+
+            showNeighboringChoose(chatId);
+            return;
+
         } else if (callback.startsWith("Neighboring_")) {
-            unofficialSettings(chatId, callback);
+
+            boolean chooseNeighboring = Boolean.parseBoolean(callback.replace("Neighboring_", ""));
+            user.setSubscribeToNeighboring(chooseNeighboring);
+            userSettingsRepository.save(user);
+
+            showUnofficialChoose(chatId);
+            return;
+
         } else if (callback.startsWith("Unofficial_")) {
-            endingOfSettings(chatId, callback);
+
+            boolean chooseUnofficial = Boolean.parseBoolean(callback.replace("Unofficial_", ""));
+            user.setUnofficialEnabled(chooseUnofficial);
+            userSettingsRepository.save(user);
         }
+
+        Region region = regionRepository.findById(user.getRegionId()).orElseThrow();
+        Raion raion = raionRepository.findById(user.getRaionId()).orElseThrow();
+        City city = cityRepository.findById(user.getCityId()).orElseThrow();
+        CityDistrict cityDistrict = cityDistrictRepository.findById(user.getCityDistrictId()).orElseThrow();
+
+
+        String text = """
+                            ✅ Налаштування збережено!
+                            Область: %s
+                            Район: %s
+                            Місто: %s
+                            Район: %s
+                            Сусідні райони: %s
+                            Неофіційні повідомлення: %s
+                            
+                            ⚠️ Важливо:
+                            • Цей бот не замінює офіційні сигнали тривоги — завжди дій за офіційними інструкціями.
+                            • Відсутність повідомлення від бота не означає відсутність небезпеки.
+                            • Неофіційні повідомлення позначаються окремо і не є підтвердженою інформацією.
+                            
+                            Змінити налаштування можна командою /settings.
+                            """.formatted(region.getName(), raion.getName(),
+                city.getName(), cityDistrict.getName(),
+                user.isSubscribeToNeighboring() ? "Так" : "Ні",
+                user.isUnofficialEnabled() ? "Так" : "Ні");
+
+        sendMessage(chatId, text, null);
     }
 
     public void handleStart(long chatId){
@@ -96,7 +171,7 @@ public class OnboardingService {
     }
 
     public void showRegions(long chatId) {
-        List<Region> regions = regionRepository.findAll();
+        List<Region> regions = regionRepository.findAllByOrderByNameAsc();
         LinkedHashMap<String, String> data = new LinkedHashMap<>();
 
         for (var item : regions){
@@ -110,199 +185,74 @@ public class OnboardingService {
         sendMessage(chatId, text, markup);
     }
 
-    public void citySettings(long chatId){
-        List<City> cityList = cityRepository.findAll();
-        List<InlineKeyboardRow> rows = new ArrayList<>();
+    public void showRaions(long chatId, long regionId) {
+        List<Raion> raions = raionRepository.findByRegionId(regionId);
+        LinkedHashMap<String, String> data = new LinkedHashMap<>();
 
-        for(var city : cityList){
-            InlineKeyboardButton button = InlineKeyboardButton.builder()
-                    .text(city.getName())
-                    .callbackData("City_" + city.getId())
-                    .build();
-
-            InlineKeyboardRow row = new InlineKeyboardRow(button);
-            rows.add(row);
+        for (var item : raions){
+            data.put(item.getName(), "Raion_" + item.getId());
         }
 
-        InlineKeyboardMarkup markup = InlineKeyboardMarkup.builder()
-                .keyboard(rows)
-                .build();
+        InlineKeyboardMarkup markup = makeKeyboard(data);
 
-        SendMessage citySelection = SendMessage.builder()
-                .chatId(chatId)
-                .text("Оберіть ваш обласний центр")
-                .replyMarkup(markup)
-                .build();
+        String text = "Виберіть ваш район";
 
-        try {
-            telegramClient.execute(citySelection);
-        } catch (TelegramApiException ex){
-            ex.printStackTrace();
-        }
+        sendMessage(chatId, text, markup);
     }
 
-    public void districtSettings(long chatId, String callback){
-        long cityId = Long.parseLong(callback.replace("City_", ""));
+    public void showCities(long chatId, long raionId){
+        List<City> cities = cityRepository.findByRaionId(raionId);
+        LinkedHashMap<String, String> data = new LinkedHashMap<>();
 
-        UserSettings userSettings = userSettingsRepository.findByChatId(chatId)
-                .orElse(new UserSettings());
-
-        userSettings.setChatId(chatId);
-        userSettings.setCityId(cityId);
-        userSettings.setDistrictId(null);
-
-        userSettingsRepository.save(userSettings);
-
-        List<CityDistrict> cityDistricts = cityDistrictRepository.findByCityId(cityId);
-        List<InlineKeyboardRow> rows = new ArrayList<>();
-
-        for (var district : cityDistricts){
-            InlineKeyboardButton button = InlineKeyboardButton.builder()
-                    .text(district.getName())
-                    .callbackData("District_" + district.getId())
-                    .build();
-
-            InlineKeyboardRow row = new InlineKeyboardRow(button);
-            rows.add(row);
+        for (var item : cities){
+            data.put(item.getName(), "City_" + item.getId());
         }
 
-        InlineKeyboardMarkup markup = InlineKeyboardMarkup.builder()
-                .keyboard(rows)
-                .build();
+        InlineKeyboardMarkup markup = makeKeyboard(data);
 
-        SendMessage districtSelection = SendMessage.builder()
-                .chatId(chatId)
-                .text("Обери свій район")
-                .replyMarkup(markup)
-                .build();
+        String text = "Виберіть ваше місто";
 
-        try {
-            telegramClient.execute(districtSelection);
-        } catch (TelegramApiException ex){
-            ex.printStackTrace();
-        }
+        sendMessage(chatId, text, markup);
     }
 
-    public void neighboringSettings(long chatId, String callback){
-        long districtId = Long.parseLong(callback.replace("District_", ""));
+    public void showDistricts(long chatId, long cityId) {
+        List<CityDistrict> districts = cityDistrictRepository.findByCityId(cityId);
+        LinkedHashMap<String, String> data = new LinkedHashMap<>();
 
-        UserSettings user = userSettingsRepository.findByChatId(chatId)
-                .orElseThrow();
-
-        user.setDistrictId(districtId);
-
-        userSettingsRepository.save(user);
-
-        List<InlineKeyboardRow> rows = new ArrayList<>();
-
-        InlineKeyboardButton buttonTrue = InlineKeyboardButton.builder()
-                .text("Так")
-                .callbackData("Neighboring_true")
-                .build();
-
-        InlineKeyboardButton buttonFalse = InlineKeyboardButton.builder()
-                .text("Ні")
-                .callbackData("Neighboring_false")
-                .build();
-
-        rows.add(new InlineKeyboardRow(buttonTrue));
-        rows.add(new InlineKeyboardRow(buttonFalse));
-
-        InlineKeyboardMarkup markup = InlineKeyboardMarkup.builder()
-                .keyboard(rows)
-                .build();
-
-        SendMessage neighboringSelection = SendMessage.builder()
-                .chatId(chatId)
-                .text("Чи Ви хочете отримувати повідомлення про загрозу в сусідніх від Вас районах? (Якщо ні, то Ви будете отримувати повідомлення про загрозу лише у своєму районі.)")
-                .replyMarkup(markup)
-                .build();
-
-        try {
-            telegramClient.execute(neighboringSelection);
-        } catch (TelegramApiException ex){
-            ex.printStackTrace();
+        for (var item : districts){
+            data.put(item.getName(), "District_" + item.getId());
         }
+
+        InlineKeyboardMarkup markup = makeKeyboard(data);
+
+        String text = "Виберіть район у вашому місті";
+
+        sendMessage(chatId, text, markup);
     }
 
-    public void unofficialSettings(long chatId, String callback){
-        boolean neighboringChoose = Boolean.parseBoolean(callback.replace("Neighboring_", ""));
+    public void showNeighboringChoose(long chatId){
+        LinkedHashMap<String, String> data = new LinkedHashMap<>();
 
-        UserSettings user = userSettingsRepository.findByChatId(chatId)
-                .orElseThrow();
+        data.put("Так", "Neighboring_true");
+        data.put("Ні", "Neighboring_false");
 
-        user.setSubscribeToNeighboring(neighboringChoose);
+        InlineKeyboardMarkup markup = makeKeyboard(data);
 
-        userSettingsRepository.save(user);
+        String text = "Чи Ви хочете отримувати повідомлення про загрозу в сусідніх від Вас районах? (Якщо ні, то Ви будете отримувати повідомлення про загрозу лише у своєму районі.)";
 
-        List<InlineKeyboardRow> rows = new ArrayList<>();
-
-        InlineKeyboardButton buttonTrue = InlineKeyboardButton.builder()
-                .text("Так")
-                .callbackData("Unofficial_true")
-                .build();
-
-        InlineKeyboardButton buttonFalse = InlineKeyboardButton.builder()
-                .text("Ні")
-                .callbackData("Unofficial_false")
-                .build();
-
-        rows.add(new InlineKeyboardRow(buttonTrue));
-        rows.add(new InlineKeyboardRow(buttonFalse));
-
-        InlineKeyboardMarkup markup = InlineKeyboardMarkup.builder()
-                .keyboard(rows)
-                .build();
-
-        SendMessage unofficialSelection = SendMessage.builder()
-                .chatId(chatId)
-                .text("Чи хочете ви отримувати повідомлення з неофіційних джерел?")
-                .replyMarkup(markup)
-                .build();
-
-        try {
-            telegramClient.execute(unofficialSelection);
-        } catch (TelegramApiException ex){
-            ex.printStackTrace();
-        }
+        sendMessage(chatId, text, markup);
     }
 
-    public void endingOfSettings(long chatId, String callback){
-        boolean unofficialChoose = Boolean.parseBoolean(callback.replace("Unofficial_", ""));
+    public void showUnofficialChoose(long chatId) {
+        LinkedHashMap<String, String> data = new LinkedHashMap<>();
 
-        UserSettings user = userSettingsRepository.findByChatId(chatId)
-                .orElseThrow();
+        data.put("Так", "Unofficial_true");
+        data.put("Ні", "Unofficial_false");
 
-        user.setUnofficialEnabled(unofficialChoose);
+        InlineKeyboardMarkup markup = makeKeyboard(data);
 
-        userSettingsRepository.save(user);
+        String text = "Чи хочете ви отримувати повідомлення з неофіційних джерел?";
 
-        City city = cityRepository.findById(user.getCityId()).orElseThrow();
-        CityDistrict cityDistrict = cityDistrictRepository.findById(user.getDistrictId()).orElseThrow();
-
-
-        SendMessage lastMessage = SendMessage.builder()
-                .chatId(chatId)
-                .text("""
-                            ✅ Налаштування збережено!
-                            Місто: %s
-                            Район: %s
-                            Сусідні райони: %s
-                            Неофіційні повідомлення: %s
-                            
-                            ⚠️ Важливо:
-                            • Цей бот не замінює офіційні сигнали тривоги — завжди дій за офіційними інструкціями.
-                            • Відсутність повідомлення від бота не означає відсутність небезпеки.
-                            • Неофіційні повідомлення позначаються окремо і не є підтвердженою інформацією.
-                            
-                            Змінити налаштування можна командою /settings.
-                            """.formatted(city.getName(), cityDistrict.getName(), user.isSubscribeToNeighboring() ? "Так" : "Ні", user.isUnofficialEnabled() ? "Так" : "Ні"))
-                .build();
-
-        try {
-            telegramClient.execute(lastMessage);
-        } catch (TelegramApiException ex){
-            ex.printStackTrace();
-        }
+        sendMessage(chatId, text, markup);
     }
 }

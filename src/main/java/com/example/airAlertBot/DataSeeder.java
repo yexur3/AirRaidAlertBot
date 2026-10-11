@@ -33,11 +33,11 @@ public class DataSeeder implements CommandLineRunner {
         if(regionRepository.count() == 0) {
 
             Region regionKyiv = new Region();
-            regionKyiv.setName("Київська");
+            regionKyiv.setName("Київська область");
             regionRepository.save(regionKyiv);
 
             Region regionChernihiv = new Region();
-            regionChernihiv.setName("Чернігівська");
+            regionChernihiv.setName("Чернігівська область");
             regionRepository.save(regionChernihiv);
 
             Region kyiv = new Region();
