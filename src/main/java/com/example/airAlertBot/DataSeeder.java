@@ -4,7 +4,6 @@ import com.example.airAlertBot.entities.*;
 import com.example.airAlertBot.enums.ChannelsId;
 import com.example.airAlertBot.enums.Type;
 import com.example.airAlertBot.repositories.*;
-import org.checkerframework.checker.units.qual.C;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
@@ -41,7 +40,7 @@ public class DataSeeder implements CommandLineRunner {
             regionRepository.save(regionChernihiv);
 
             String[] chernihivRaions = {"Корюківський", "Ніжинський", "Новгород-Сіверський", "Прилуцький", "Чернігівський"};
-            Map<String, List<String>> cities = new HashMap<>(Map.of(
+            Map<String, List<String>> citiesOfChernihivRaions = new HashMap<>(Map.of(
                     "Корюківський", List.of("Корюківка", "Мена"),
                     "Ніжинський", List.of("Ніжин", "Бахмач"),
                     "Новгород-Сіверський", List.of("Новгород-Сіверський", "Семенівка"),
@@ -58,7 +57,7 @@ public class DataSeeder implements CommandLineRunner {
 
                 raionRepository.save(raionOfRegion);
 
-                for (var city : cities.get(raion)) {
+                for (var city : citiesOfChernihivRaions.get(raion)) {
                     City cityRegion = new City();
 
                     cityRegion.setName(city);
@@ -89,30 +88,47 @@ public class DataSeeder implements CommandLineRunner {
             regionKyiv.setName("Київська область");
             regionRepository.save(regionKyiv);
 
-
-            Region kyiv = new Region();
-            kyiv.setName("м. Київ");
-            regionRepository.save(kyiv);
-
-
-            String[] kyivRaions = {"Білоцерківський", "Бориспільський", "Броварський","Бучанський", "Вишгородський", "Обухівський", "Фастівський"};
-
-
-
-            for(var raion : kyivRaions){
+            String[] kyivRaions = {"Білоцерківський", "Бориспільський", "Броварський", "Бучанський", "Вишгородський", "Обухівський", "Фастівський"};
+            Map<String, List<String>> citiesOfKyivRaions = new HashMap<>(Map.of(
+                    "Білоцерківський", List.of("Біла Церква", "Богуслав", "Сквира", "Тараща", "Тетіїв", "Узин"),
+                    "Бориспільський", List.of("Бориспіль", "Переяслав", "Яготин"),
+                    "Броварський", List.of("Бровари", "Березань"),
+                    "Бучанський", List.of("Буча", "Ірпінь", "Вишневе"),
+                    "Вишгородський", List.of("Вишгород", "Славутич", "Прип'ять", "Чорнобиль"),
+                    "Обухівський", List.of("Обухів", "Васильків", "Кагарлик", "Миронівка", "Ржищів", "Українка"),
+                    "Фастівський", List.of("Фастів", "Боярка")
+            ));
+            for (var raion : kyivRaions){
                 Raion raionOfRegion = new Raion();
 
                 raionOfRegion.setName(raion);
                 raionOfRegion.setRegionId(regionKyiv.getId());
 
                 raionRepository.save(raionOfRegion);
+
+                for(var cityInRaion : citiesOfKyivRaions.get(raion)){
+                    City cityInRegion = new City();
+
+                    cityInRegion.setName(cityInRaion);
+                    cityInRegion.setRaionId(raionOfRegion.getId());
+                    cityInRegion.setRegionalCenter(false);
+
+                    cityRepository.save(cityInRegion);
+                }
             }
+
+            // --------------------------------------------
+
+
+            Region kyiv = new Region();
+            kyiv.setName("м. Київ");
+            regionRepository.save(kyiv);
+
 
             Raion kyivRaion = new Raion();
             kyivRaion.setName("м. Київ");
             kyivRaion.setRegionId(kyiv.getId());
             raionRepository.save(kyivRaion);
-
 
             City kyivCity = new City();
 

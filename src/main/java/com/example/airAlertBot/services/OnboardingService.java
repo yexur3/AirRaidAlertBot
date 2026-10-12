@@ -112,6 +112,8 @@ public class OnboardingService {
 
             long raionId = Long.parseLong(callback.replace("Raion_", ""));
             user.setRaionId(raionId);
+            user.setCityId(null);
+            user.setCityDistrictId(null);
             userSettingsRepository.save(user);
 
             showCities(chatId, raionId);
@@ -121,9 +123,16 @@ public class OnboardingService {
 
             long cityId = Long.parseLong(callback.replace("City_", ""));
             user.setCityId(cityId);
+            user.setCityDistrictId(null);
             userSettingsRepository.save(user);
 
-            showDistricts(chatId, cityId);
+            City city = cityRepository.findById(cityId).orElseThrow();
+            if (city.isRegionalCenter()){
+                showDistricts(chatId, cityId);
+            } else {
+                showNeighboringChoose(chatId);
+            }
+
             return;
 
         } else if (callback.startsWith("District_")) {
@@ -154,7 +163,13 @@ public class OnboardingService {
         Region region = regionRepository.findById(user.getRegionId()).orElseThrow();
         Raion raion = raionRepository.findById(user.getRaionId()).orElseThrow();
         City city = cityRepository.findById(user.getCityId()).orElseThrow();
-        CityDistrict cityDistrict = cityDistrictRepository.findById(user.getCityDistrictId()).orElseThrow();
+
+        String districtLine = "";
+        if (user.getCityDistrictId() != null){
+            districtLine = cityDistrictRepository.findById(user.getCityDistrictId())
+                    .map(district -> "Район міста: " + district.getName() + "\n")
+                    .orElse("");
+        }
 
 
         String text = """
@@ -162,8 +177,7 @@ public class OnboardingService {
                             Область: %s
                             Район: %s
                             Місто: %s
-                            Район: %s
-                            Сусідні райони: %s
+                            %sСусідні райони: %s
                             Неофіційні повідомлення: %s
                             
                             ⚠️ Важливо:
@@ -173,7 +187,7 @@ public class OnboardingService {
                             
                             Змінити налаштування можна командою /settings.
                             """.formatted(region.getName(), raion.getName(),
-                city.getName(), cityDistrict.getName(),
+                city.getName(), districtLine,
                 user.isSubscribeToNeighboring() ? "Так" : "Ні",
                 user.isUnofficialEnabled() ? "Так" : "Ні");
 
