@@ -7,10 +7,10 @@ import com.example.airAlertBot.message_processing.kyiv.RealKyivMessageProcessing
 public class MessageStrategyFactory {
     public static MessageProcessingFromTelegramChannels getChannelFromSends(ChannelsId channelsId){
         switch (channelsId){
-            case REALKYIV -> {
+            case REAL_KYIV -> {
                 return new RealKyivMessageProcessing();
             }
-            case LOVECHERNIHIV -> {
+            case LOVE_CHERNIHIV -> {
                 return new LoveChernihivMessageProcessing();
             }
             default -> throw new IllegalStateException("Invalid channel id!" + channelsId);

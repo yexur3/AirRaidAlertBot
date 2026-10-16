@@ -18,7 +18,7 @@ public class MonitoredChannel {
     @Enumerated(EnumType.STRING)
     private Type type;
 
-    private long cityId;
+    private long regionId;
 
     @Enumerated(EnumType.STRING)
     private ChannelsId channelsId;

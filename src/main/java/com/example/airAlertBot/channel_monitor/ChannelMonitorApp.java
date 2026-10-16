@@ -70,7 +70,7 @@ public class ChannelMonitorApp implements AutoCloseable{
 
         MonitoredChannel monitoredChannel = monitoredChannelOpt.get();
 
-        City city = cityRepository.findById(monitoredChannel.getCityId()).orElseThrow();
+//        City city = cityRepository.findById(monitoredChannel.getCityId()).orElseThrow();
 
         AlertInfo alertInfo = extractText(update.message.content, monitoredChannel.getChannelsId());
 
@@ -78,27 +78,27 @@ public class ChannelMonitorApp implements AutoCloseable{
             return;
         }
 
-        String text = AlertMessageFormater.format(alertInfo, city.getName());
+//        String text = AlertMessageFormater.format(alertInfo, city.getName());
 
         List<UserSettings> users = userSettingsRepository.findAll();
 
         for (var user : users){
 
-            if (user.getCityId() != null && user.getCityId() == monitoredChannel.getCityId()){
-                SendMessage sendMessage = SendMessage.builder()
-                        .chatId(user.getChatId())
-                        .text(text)
-                        .build();
-
-                try {
-                    telegramClient.execute(sendMessage);
-                } catch (TelegramApiException ex){
-                    ex.printStackTrace();
-                }
-            }
+//            if (user.getCityId() != null && user.getCityId() == monitoredChannel.getCityId()){
+//                SendMessage sendMessage = SendMessage.builder()
+//                        .chatId(user.getChatId())
+//                        .text(text)
+//                        .build();
+//
+//                try {
+//                    telegramClient.execute(sendMessage);
+//                } catch (TelegramApiException ex){
+//                    ex.printStackTrace();
+//                }
+//            }
 
         }
-        System.out.println("Received message from monitored chat (" + monitoredChannel.getType() + "): " + text);
+//        System.out.println("Received message from monitored chat (" + monitoredChannel.getType() + "): " + text);
     }
 
     private AlertInfo extractText(TdApi.MessageContent content, ChannelsId channelsId){

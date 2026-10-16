@@ -155,27 +155,41 @@ public class DataSeeder implements CommandLineRunner {
 
         if (monitoredChannelRepository.count() == 0){
 
-            City city = cityRepository.findByName("Київ").orElseThrow();
+            Region region = regionRepository.findByName("м. Київ").orElseThrow();
             MonitoredChannel monitoredChannel = new MonitoredChannel();
             monitoredChannel.setTelegramChatId(-1001181169156L);
             monitoredChannel.setType(Type.UNOFFICIAL);
-            monitoredChannel.setCityId(city.getId());
-            monitoredChannel.setChannelsId(ChannelsId.REALKYIV);
+            monitoredChannel.setChannelsId(ChannelsId.REAL_KYIV);
+            monitoredChannel.setRegionId(region.getId());
             monitoredChannelRepository.save(monitoredChannel);
 
 //            MonitoredChannel monitoredChannel1 = new MonitoredChannel();
 //            monitoredChannel1.setTelegramChatId(-1001223955273L);
 //            monitoredChannel1.setType(Type.OFFICIAL);
-//            monitoredChannel1.setChannelsId(ChannelsId.POVITRYANISYLYZSUKRAINE);
+//            monitoredChannel1.setChannelsId(ChannelsId.POVITRYANI_SYLY_ZS_UKRAINE);
 //            monitoredChannelRepository.save(monitoredChannel1);
 
-            city = cityRepository.findByName("Чернігів").orElseThrow();
+            region = regionRepository.findByName("Чернігівська область").orElseThrow();
             MonitoredChannel channelForChernihiv = new MonitoredChannel();
             channelForChernihiv.setTelegramChatId(-1001238700656L);
             channelForChernihiv.setType(Type.OFFICIAL);
-            channelForChernihiv.setCityId(city.getId());
-            channelForChernihiv.setChannelsId(ChannelsId.LOVECHERNIHIV);
+            channelForChernihiv.setChannelsId(ChannelsId.LOVE_CHERNIHIV);
+            channelForChernihiv.setRegionId(region.getId());
             monitoredChannelRepository.save(channelForChernihiv);
+
+            MonitoredChannel channelForChernihiv2 = new MonitoredChannel();
+            channelForChernihiv2.setTelegramChatId(-1001841705974L);
+            channelForChernihiv2.setType(Type.UNOFFICIAL);
+            channelForChernihiv2.setChannelsId(ChannelsId.TRYVOHA_CHERNIHIV);
+            channelForChernihiv2.setRegionId(region.getId());
+            monitoredChannelRepository.save(channelForChernihiv2);
+
+            MonitoredChannel channelForChernihiv3 = new MonitoredChannel();
+            channelForChernihiv3.setTelegramChatId(-1001386548824L);
+            channelForChernihiv3.setType(Type.OFFICIAL);
+            channelForChernihiv3.setChannelsId(ChannelsId.SYSPILNE_CHERNIHIV);
+            channelForChernihiv3.setRegionId(region.getId());
+            monitoredChannelRepository.save(channelForChernihiv3);
 
         }
     }
