@@ -20,15 +20,6 @@ public class RealKyivMessageProcessing implements MessageProcessingFromTelegramC
             return null;
         }
 
-        AlertScope scope;
-        if (rawMessageText.contains("М. КИЇВ") && !rawMessageText.contains("ОБЛАСТЬ")){
-            scope = AlertScope.CITY_ONLY;
-        } else if (!rawMessageText.contains("М. КИЇВ") && rawMessageText.contains("ОБЛАСТЬ") && !rawMessageText.contains("КИЇВ ТА")){
-            scope = AlertScope.REGION_ONLY;
-        } else {
-            scope = AlertScope.CITY_AND_REGION;
-        }
-
         DangerLevel dangerLevel = null;
         if (rawMessageText.contains("Жовтий рівень")) {
             dangerLevel = DangerLevel.YELLOW;
@@ -36,8 +27,15 @@ public class RealKyivMessageProcessing implements MessageProcessingFromTelegramC
             dangerLevel = DangerLevel.RED;
         }
 
+        String location = "";
+        if (rawMessageText.contains("М. КИЇВ")){
+            location = "м. Київ";
+        } else if (rawMessageText.contains("КИЇВСЬКА ОБЛАСТЬ")) {
+            location = "Київська область";
+        }
+
         Reason reason = rawMessageText.contains("БпЛА") ? Reason.DRONES : null;
 
-        return new AlertInfo(eventType, scope, dangerLevel, reason);
+        return new AlertInfo(eventType, location, AlertScope.RAION, dangerLevel, reason);
     }
 }

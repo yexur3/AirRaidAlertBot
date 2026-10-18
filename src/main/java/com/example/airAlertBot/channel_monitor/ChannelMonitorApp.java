@@ -2,6 +2,7 @@ package com.example.airAlertBot.channel_monitor;
 
 import com.example.airAlertBot.entities.City;
 import com.example.airAlertBot.entities.MonitoredChannel;
+import com.example.airAlertBot.entities.Raion;
 import com.example.airAlertBot.entities.UserSettings;
 import com.example.airAlertBot.enums.AlertScope;
 import com.example.airAlertBot.enums.ChannelsId;
@@ -11,6 +12,7 @@ import com.example.airAlertBot.message_processing.MessageProcessingFromTelegramC
 import com.example.airAlertBot.message_processing.MessageStrategyFactory;
 import com.example.airAlertBot.repositories.CityRepository;
 import com.example.airAlertBot.repositories.MonitoredChannelRepository;
+import com.example.airAlertBot.repositories.RaionRepository;
 import com.example.airAlertBot.repositories.UserSettingsRepository;
 import it.tdlight.client.ConsoleInteractiveAuthenticationData;
 import it.tdlight.client.SimpleTelegramClient;
@@ -30,16 +32,18 @@ public class ChannelMonitorApp implements AutoCloseable{
     private final TelegramClient telegramClient;
     private final UserSettingsRepository userSettingsRepository;
     private final CityRepository cityRepository;
+    private final RaionRepository raionRepository;
 
     public ChannelMonitorApp(SimpleTelegramClientBuilder clientBuilder, ConsoleInteractiveAuthenticationData authenticationData,
                              MonitoredChannelRepository monitoredChannelRepository,
                              TelegramClient telegramClient,
                              UserSettingsRepository userSettingsRepository,
-                             CityRepository cityRepository){
+                             CityRepository cityRepository, RaionRepository raionRepository){
         this.monitoredChannelRepository = monitoredChannelRepository;
         this.telegramClient = telegramClient;
         this.userSettingsRepository = userSettingsRepository;
         this.cityRepository = cityRepository;
+        this.raionRepository = raionRepository;
 
         clientBuilder.addUpdateHandler(TdApi.UpdateAuthorizationState.class, this::onUpdateAuthorizationState);
         clientBuilder.addUpdateHandler(TdApi.UpdateNewMessage.class, this::onUpdateNewMessage);
@@ -70,35 +74,35 @@ public class ChannelMonitorApp implements AutoCloseable{
 
         MonitoredChannel monitoredChannel = monitoredChannelOpt.get();
 
-//        City city = cityRepository.findById(monitoredChannel.getCityId()).orElseThrow();
-
         AlertInfo alertInfo = extractText(update.message.content, monitoredChannel.getChannelsId());
 
         if (alertInfo == null || alertInfo.scope() == AlertScope.REGION_ONLY) {
             return;
         }
 
-//        String text = AlertMessageFormater.format(alertInfo, city.getName());
+        Raion raion = raionRepository.findByName(alertInfo.location()).orElseThrow();
+
+        String text = AlertMessageFormater.format(alertInfo, raion.getName());
 
         List<UserSettings> users = userSettingsRepository.findAll();
 
         for (var user : users){
 
-//            if (user.getCityId() != null && user.getCityId() == monitoredChannel.getCityId()){
-//                SendMessage sendMessage = SendMessage.builder()
-//                        .chatId(user.getChatId())
-//                        .text(text)
-//                        .build();
-//
-//                try {
-//                    telegramClient.execute(sendMessage);
-//                } catch (TelegramApiException ex){
-//                    ex.printStackTrace();
-//                }
-//            }
+            if (user.getCityId() != null && user.getRaionId() == raion.getId()){
+                SendMessage sendMessage = SendMessage.builder()
+                        .chatId(user.getChatId())
+                        .text(text)
+                        .build();
+
+                try {
+                    telegramClient.execute(sendMessage);
+                } catch (TelegramApiException ex){
+                    ex.printStackTrace();
+                }
+            }
 
         }
-//        System.out.println("Received message from monitored chat (" + monitoredChannel.getType() + "): " + text);
+        System.out.println("Received message from monitored chat (" + monitoredChannel.getType() + "): " + text);
     }
 
     private AlertInfo extractText(TdApi.MessageContent content, ChannelsId channelsId){

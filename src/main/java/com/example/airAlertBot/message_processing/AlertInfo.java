@@ -7,6 +7,7 @@ import com.example.airAlertBot.enums.Reason;
 
 public record AlertInfo(
         AlertEventType eventType,
+        String location,
         AlertScope scope,
         DangerLevel dangerLevel,
         Reason reason) {

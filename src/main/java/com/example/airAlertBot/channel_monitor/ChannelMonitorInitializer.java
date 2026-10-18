@@ -3,6 +3,7 @@ package com.example.airAlertBot.channel_monitor;
 import com.example.airAlertBot.entities.UserSettings;
 import com.example.airAlertBot.repositories.CityRepository;
 import com.example.airAlertBot.repositories.MonitoredChannelRepository;
+import com.example.airAlertBot.repositories.RaionRepository;
 import com.example.airAlertBot.repositories.UserSettingsRepository;
 import it.tdlight.Init;
 import it.tdlight.Log;
@@ -29,15 +30,17 @@ public class ChannelMonitorInitializer implements CommandLineRunner {
     private final TelegramClient telegramClient;
     private final UserSettingsRepository userSettingsRepository;
     private final CityRepository cityRepository;
+    private final RaionRepository raionRepository;
 
     public ChannelMonitorInitializer(MonitoredChannelRepository monitoredChannelRepository,
                                      TelegramClient telegramClient,
                                      UserSettingsRepository userSettingsRepository,
-                                     CityRepository cityRepository){
+                                     CityRepository cityRepository, RaionRepository raionRepository){
         this.monitoredChannelRepository = monitoredChannelRepository;
         this.telegramClient = telegramClient;
         this.userSettingsRepository = userSettingsRepository;
         this.cityRepository = cityRepository;
+        this.raionRepository = raionRepository;
     }
 
     @Override
@@ -58,6 +61,6 @@ public class ChannelMonitorInitializer implements CommandLineRunner {
 
         var authenticationData = AuthenticationSupplier.consoleLogin();
 
-        new ChannelMonitorApp(clientBuilder, authenticationData, monitoredChannelRepository, telegramClient, userSettingsRepository, cityRepository);
+        new ChannelMonitorApp(clientBuilder, authenticationData, monitoredChannelRepository, telegramClient, userSettingsRepository, cityRepository, raionRepository);
     }
 }

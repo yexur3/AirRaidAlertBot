@@ -34,6 +34,6 @@ public class LoveChernihivMessageProcessing implements MessageProcessingFromTele
             reason = Reason.MISSILES;
         }
 
-        return new AlertInfo(eventType, AlertScope.CITY_ONLY, dangerLevel, reason);
+        return new AlertInfo(eventType, "Чернігівський", AlertScope.RAION, dangerLevel, reason);
     }
 }
