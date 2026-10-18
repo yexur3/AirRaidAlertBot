@@ -13,12 +13,11 @@ public class MonitoredChannel {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
+    @Column(unique = true)
     private long telegramChatId;
 
     @Enumerated(EnumType.STRING)
     private Type type;
-
-    private long regionId;
 
     @Enumerated(EnumType.STRING)
     private ChannelsId channelsId;
