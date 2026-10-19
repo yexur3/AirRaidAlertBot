@@ -1,10 +1,7 @@
 package com.example.airAlertBot.channel_monitor;
 
 import com.example.airAlertBot.entities.UserSettings;
-import com.example.airAlertBot.repositories.CityRepository;
-import com.example.airAlertBot.repositories.MonitoredChannelRepository;
-import com.example.airAlertBot.repositories.RaionRepository;
-import com.example.airAlertBot.repositories.UserSettingsRepository;
+import com.example.airAlertBot.repositories.*;
 import it.tdlight.Init;
 import it.tdlight.Log;
 import it.tdlight.Slf4JLogMessageHandler;
@@ -31,16 +28,19 @@ public class ChannelMonitorInitializer implements CommandLineRunner {
     private final UserSettingsRepository userSettingsRepository;
     private final CityRepository cityRepository;
     private final RaionRepository raionRepository;
+    private final RegionRepository regionRepository;
 
     public ChannelMonitorInitializer(MonitoredChannelRepository monitoredChannelRepository,
                                      TelegramClient telegramClient,
                                      UserSettingsRepository userSettingsRepository,
-                                     CityRepository cityRepository, RaionRepository raionRepository){
+                                     CityRepository cityRepository, RaionRepository raionRepository,
+                                     RegionRepository regionRepository){
         this.monitoredChannelRepository = monitoredChannelRepository;
         this.telegramClient = telegramClient;
         this.userSettingsRepository = userSettingsRepository;
         this.cityRepository = cityRepository;
         this.raionRepository = raionRepository;
+        this.regionRepository = regionRepository;
     }
 
     @Override
@@ -61,6 +61,6 @@ public class ChannelMonitorInitializer implements CommandLineRunner {
 
         var authenticationData = AuthenticationSupplier.consoleLogin();
 
-        new ChannelMonitorApp(clientBuilder, authenticationData, monitoredChannelRepository, telegramClient, userSettingsRepository, cityRepository, raionRepository);
+        new ChannelMonitorApp(clientBuilder, authenticationData, monitoredChannelRepository, telegramClient, userSettingsRepository, cityRepository, raionRepository, regionRepository);
     }
 }

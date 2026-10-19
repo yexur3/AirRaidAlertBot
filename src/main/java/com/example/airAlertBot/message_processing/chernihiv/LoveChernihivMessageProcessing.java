@@ -7,9 +7,11 @@ import com.example.airAlertBot.enums.Reason;
 import com.example.airAlertBot.message_processing.AlertInfo;
 import com.example.airAlertBot.message_processing.MessageProcessingFromTelegramChannels;
 
+import java.util.List;
+
 public class LoveChernihivMessageProcessing implements MessageProcessingFromTelegramChannels {
     @Override
-    public AlertInfo execute(String rawMessageText) {
+    public List<AlertInfo> execute(String rawMessageText) {
         AlertEventType eventType;
 
         if (rawMessageText.contains("повітряна тривога")) {
@@ -34,6 +36,6 @@ public class LoveChernihivMessageProcessing implements MessageProcessingFromTele
             reason = Reason.MISSILES;
         }
 
-        return new AlertInfo(eventType, "Чернігівський", AlertScope.RAION, dangerLevel, reason);
+        return List.of(new AlertInfo(eventType, "Чернігівський", AlertScope.RAION, dangerLevel, reason));
     }
 }

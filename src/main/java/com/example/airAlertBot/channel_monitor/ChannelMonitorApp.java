@@ -1,19 +1,13 @@
 package com.example.airAlertBot.channel_monitor;
 
-import com.example.airAlertBot.entities.City;
-import com.example.airAlertBot.entities.MonitoredChannel;
-import com.example.airAlertBot.entities.Raion;
-import com.example.airAlertBot.entities.UserSettings;
+import com.example.airAlertBot.entities.*;
 import com.example.airAlertBot.enums.AlertScope;
 import com.example.airAlertBot.enums.ChannelsId;
 import com.example.airAlertBot.message_processing.AlertInfo;
 import com.example.airAlertBot.message_processing.AlertMessageFormater;
 import com.example.airAlertBot.message_processing.MessageProcessingFromTelegramChannels;
 import com.example.airAlertBot.message_processing.MessageStrategyFactory;
-import com.example.airAlertBot.repositories.CityRepository;
-import com.example.airAlertBot.repositories.MonitoredChannelRepository;
-import com.example.airAlertBot.repositories.RaionRepository;
-import com.example.airAlertBot.repositories.UserSettingsRepository;
+import com.example.airAlertBot.repositories.*;
 import it.tdlight.client.ConsoleInteractiveAuthenticationData;
 import it.tdlight.client.SimpleTelegramClient;
 import it.tdlight.client.SimpleTelegramClientBuilder;
@@ -33,17 +27,20 @@ public class ChannelMonitorApp implements AutoCloseable{
     private final UserSettingsRepository userSettingsRepository;
     private final CityRepository cityRepository;
     private final RaionRepository raionRepository;
+    private final RegionRepository regionRepository;
 
     public ChannelMonitorApp(SimpleTelegramClientBuilder clientBuilder, ConsoleInteractiveAuthenticationData authenticationData,
                              MonitoredChannelRepository monitoredChannelRepository,
                              TelegramClient telegramClient,
                              UserSettingsRepository userSettingsRepository,
-                             CityRepository cityRepository, RaionRepository raionRepository){
+                             CityRepository cityRepository, RaionRepository raionRepository,
+                             RegionRepository regionRepository){
         this.monitoredChannelRepository = monitoredChannelRepository;
         this.telegramClient = telegramClient;
         this.userSettingsRepository = userSettingsRepository;
         this.cityRepository = cityRepository;
         this.raionRepository = raionRepository;
+        this.regionRepository = regionRepository;
 
         clientBuilder.addUpdateHandler(TdApi.UpdateAuthorizationState.class, this::onUpdateAuthorizationState);
         clientBuilder.addUpdateHandler(TdApi.UpdateNewMessage.class, this::onUpdateNewMessage);
@@ -74,38 +71,64 @@ public class ChannelMonitorApp implements AutoCloseable{
 
         MonitoredChannel monitoredChannel = monitoredChannelOpt.get();
 
-        AlertInfo alertInfo = extractText(update.message.content, monitoredChannel.getChannelsId());
+        List<AlertInfo> alertInfos = extractText(update.message.content, monitoredChannel.getChannelsId());
 
-        if (alertInfo == null || alertInfo.scope() == AlertScope.REGION_ONLY) {
-            return;
-        }
+        if(alertInfos.isEmpty()) return;
 
-        Raion raion = raionRepository.findByName(alertInfo.location()).orElseThrow();
+        for(var alertInfo : alertInfos) {
+            if (alertInfo.scope().equals(AlertScope.RAION)) {
+                Raion raion = raionRepository.findByName(alertInfo.location()).orElseThrow();
 
-        String text = AlertMessageFormater.format(alertInfo, raion.getName());
+                String text = AlertMessageFormater.format(alertInfo, raion.getName());
 
-        List<UserSettings> users = userSettingsRepository.findAll();
+                List<UserSettings> users = userSettingsRepository.findByRaionId(raion.getId());
 
-        for (var user : users){
+                if (users.isEmpty()) continue;
 
-            if (user.getCityId() != null && user.getRaionId() == raion.getId()){
-                SendMessage sendMessage = SendMessage.builder()
-                        .chatId(user.getChatId())
-                        .text(text)
-                        .build();
+                for (var user : users){
+                    SendMessage sendMessage = SendMessage.builder()
+                            .chatId(user.getChatId())
+                            .text(text)
+                            .build();
 
-                try {
-                    telegramClient.execute(sendMessage);
-                } catch (TelegramApiException ex){
-                    ex.printStackTrace();
+                    try {
+                        telegramClient.execute(sendMessage);
+                    } catch (TelegramApiException ex) {
+                        ex.printStackTrace();
+                    }
+
                 }
-            }
+                System.out.println("Received message from monitored chat (" + monitoredChannel.getType() + "): " + text);
 
+            } else if (alertInfo.scope().equals(AlertScope.REGION)) {
+                Region region = regionRepository.findByName(alertInfo.location()).orElseThrow();
+
+                String text = AlertMessageFormater.format(alertInfo, region.getName());
+
+                List<UserSettings> users = userSettingsRepository.findByRegionId(region.getId());
+
+                if (users.isEmpty()) return;
+
+                for (var user : users) {
+
+                    SendMessage sendMessage = SendMessage.builder()
+                            .chatId(user.getChatId())
+                            .text(text)
+                            .build();
+
+                    try {
+                        telegramClient.execute(sendMessage);
+                    } catch (TelegramApiException ex) {
+                        ex.printStackTrace();
+                    }
+                }
+                System.out.println("Received message from monitored chat (" + monitoredChannel.getType() + "): " + text);
+            }
         }
-        System.out.println("Received message from monitored chat (" + monitoredChannel.getType() + "): " + text);
+
     }
 
-    private AlertInfo extractText(TdApi.MessageContent content, ChannelsId channelsId){
+    private List<AlertInfo> extractText(TdApi.MessageContent content, ChannelsId channelsId){
         String rawText;
 
         if(content instanceof TdApi.MessageText messageText){

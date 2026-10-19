@@ -7,9 +7,11 @@ import com.example.airAlertBot.enums.Reason;
 import com.example.airAlertBot.message_processing.AlertInfo;
 import com.example.airAlertBot.message_processing.MessageProcessingFromTelegramChannels;
 
+import java.util.List;
+
 public class RealKyivMessageProcessing implements MessageProcessingFromTelegramChannels {
     @Override
-    public AlertInfo execute(String rawMessageText) {
+    public List<AlertInfo> execute(String rawMessageText) {
         AlertEventType eventType;
 
         if(rawMessageText.contains("ОГОЛОШЕНА ПОВІТРЯНА ТРИВОГА")) {
@@ -28,14 +30,19 @@ public class RealKyivMessageProcessing implements MessageProcessingFromTelegramC
         }
 
         String location = "";
+        AlertScope scope = null;
         if (rawMessageText.contains("М. КИЇВ")){
             location = "м. Київ";
+            scope = AlertScope.RAION;
         } else if (rawMessageText.contains("КИЇВСЬКА ОБЛАСТЬ")) {
             location = "Київська область";
+            scope = AlertScope.REGION;
+        } else if (rawMessageText.contains("КИЇВ ТА ОБЛАСТЬ")) {
+
         }
 
         Reason reason = rawMessageText.contains("БпЛА") ? Reason.DRONES : null;
 
-        return new AlertInfo(eventType, location, AlertScope.RAION, dangerLevel, reason);
+        return List.of(new AlertInfo(eventType, location, scope, dangerLevel, reason));
     }
 }

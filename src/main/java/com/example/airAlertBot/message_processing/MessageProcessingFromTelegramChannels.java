@@ -1,5 +1,7 @@
 package com.example.airAlertBot.message_processing;
 
+import java.util.List;
+
 public interface MessageProcessingFromTelegramChannels {
-    AlertInfo execute(String rawMessageText);
+    List<AlertInfo> execute(String rawMessageText);
 }

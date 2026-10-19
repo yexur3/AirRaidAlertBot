@@ -3,9 +3,11 @@ package com.example.airAlertBot.message_processing.shared;
 import com.example.airAlertBot.message_processing.AlertInfo;
 import com.example.airAlertBot.message_processing.MessageProcessingFromTelegramChannels;
 
+import java.util.List;
+
 public class NotImplementedMessageProcessing implements MessageProcessingFromTelegramChannels {
     @Override
-    public AlertInfo execute(String rawMessageText) {
+    public List<AlertInfo> execute(String rawMessageText) {
         return null;
     }
 }
