@@ -73,7 +73,7 @@ public class ChannelMonitorApp implements AutoCloseable{
 
         List<AlertInfo> alertInfos = extractText(update.message.content, monitoredChannel.getChannelsId());
 
-        if(alertInfos.isEmpty()) return;
+        if(alertInfos.isEmpty() && alertInfos == null) return;
 
         for(var alertInfo : alertInfos) {
             if (alertInfo.scope().equals(AlertScope.RAION)) {
