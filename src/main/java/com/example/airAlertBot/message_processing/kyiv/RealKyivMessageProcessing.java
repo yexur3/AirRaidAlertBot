@@ -7,11 +7,14 @@ import com.example.airAlertBot.enums.Reason;
 import com.example.airAlertBot.message_processing.AlertInfo;
 import com.example.airAlertBot.message_processing.MessageProcessingFromTelegramChannels;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class RealKyivMessageProcessing implements MessageProcessingFromTelegramChannels {
     @Override
     public List<AlertInfo> execute(String rawMessageText) {
+        List<AlertInfo> result = new ArrayList<>();
+
         AlertEventType eventType;
 
         if(rawMessageText.contains("ОГОЛОШЕНА ПОВІТРЯНА ТРИВОГА")) {
@@ -29,20 +32,28 @@ public class RealKyivMessageProcessing implements MessageProcessingFromTelegramC
             dangerLevel = DangerLevel.RED;
         }
 
+        Reason reason = rawMessageText.contains("БпЛА") ? Reason.DRONES : null;
+
         String location = "";
         AlertScope scope = null;
         if (rawMessageText.contains("М. КИЇВ")){
             location = "м. Київ";
             scope = AlertScope.RAION;
+            result.add(new AlertInfo(eventType, location, scope, dangerLevel, reason));
         } else if (rawMessageText.contains("КИЇВСЬКА ОБЛАСТЬ")) {
             location = "Київська область";
             scope = AlertScope.REGION;
+            result.add(new AlertInfo(eventType, location, scope, dangerLevel, reason));
         } else if (rawMessageText.contains("КИЇВ ТА ОБЛАСТЬ")) {
+            location = "м. Київ";
+            scope = AlertScope.RAION;
+            result.add(new AlertInfo(eventType, location, scope, dangerLevel, reason));
 
+            location = "Київська область";
+            scope = AlertScope.REGION;
+            result.add(new AlertInfo(eventType, location, scope, dangerLevel, reason));
         }
 
-        Reason reason = rawMessageText.contains("БпЛА") ? Reason.DRONES : null;
-
-        return List.of(new AlertInfo(eventType, location, scope, dangerLevel, reason));
+        return result;
     }
 }

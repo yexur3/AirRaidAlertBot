@@ -8,6 +8,6 @@ import java.util.List;
 public class NotImplementedMessageProcessing implements MessageProcessingFromTelegramChannels {
     @Override
     public List<AlertInfo> execute(String rawMessageText) {
-        return null;
+        return List.of();
     }
 }
