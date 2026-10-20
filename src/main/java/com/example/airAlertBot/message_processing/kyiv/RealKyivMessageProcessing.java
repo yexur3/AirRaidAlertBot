@@ -22,7 +22,7 @@ public class RealKyivMessageProcessing implements MessageProcessingFromTelegramC
         } else if (rawMessageText.contains("ВІДБІЙ")) {
             eventType = AlertEventType.ALERT_ENDED;
         } else {
-            return null;
+            return List.of();
         }
 
         DangerLevel dangerLevel = null;

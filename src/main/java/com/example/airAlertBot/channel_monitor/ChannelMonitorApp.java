@@ -12,6 +12,7 @@ import it.tdlight.client.ConsoleInteractiveAuthenticationData;
 import it.tdlight.client.SimpleTelegramClient;
 import it.tdlight.client.SimpleTelegramClientBuilder;
 import it.tdlight.jni.TdApi;
+import lombok.extern.slf4j.Slf4j;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
@@ -19,6 +20,7 @@ import org.telegram.telegrambots.meta.generics.TelegramClient;
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 public class ChannelMonitorApp implements AutoCloseable{
 
     private final SimpleTelegramClient client;
@@ -73,12 +75,18 @@ public class ChannelMonitorApp implements AutoCloseable{
 
         List<AlertInfo> alertInfos = extractText(update.message.content, monitoredChannel.getChannelsId());
 
-        if(alertInfos.isEmpty() && alertInfos == null) return;
+        if(alertInfos == null || alertInfos.isEmpty()) return;
 
         for(var alertInfo : alertInfos) {
             if (alertInfo.scope().equals(AlertScope.RAION)) {
-                Raion raion = raionRepository.findByName(alertInfo.location()).orElseThrow();
+                Optional<Raion> raionOpt = raionRepository.findByName(alertInfo.location());
 
+                if (raionOpt.isEmpty()) {
+                    log.error("Raion with name " + alertInfo.location() + " not found");
+                    continue;
+                }
+
+                Raion raion = raionOpt.get();
                 String text = AlertMessageFormater.format(alertInfo, raion.getName());
 
                 List<UserSettings> users = userSettingsRepository.findByRaionId(raion.getId());
@@ -101,13 +109,20 @@ public class ChannelMonitorApp implements AutoCloseable{
                 System.out.println("Received message from monitored chat (" + monitoredChannel.getType() + "): " + text);
 
             } else if (alertInfo.scope().equals(AlertScope.REGION)) {
-                Region region = regionRepository.findByName(alertInfo.location()).orElseThrow();
+                Optional<Region> regionOpt = regionRepository.findByName(alertInfo.location());
+
+                if (regionOpt.isEmpty()){
+                    log.error("Region with name " + alertInfo.location() + " not found");
+                    continue;
+                }
+
+                Region region = regionOpt.get();
 
                 String text = AlertMessageFormater.format(alertInfo, region.getName());
 
                 List<UserSettings> users = userSettingsRepository.findByRegionId(region.getId());
 
-                if (users.isEmpty()) return;
+                if (users.isEmpty()) continue;
 
                 for (var user : users) {
 
@@ -138,7 +153,7 @@ public class ChannelMonitorApp implements AutoCloseable{
         } else if (content instanceof TdApi.MessageVideo video){
             rawText = video.caption.text;
         } else {
-            return null;
+            return List.of();
         }
 
         MessageProcessingFromTelegramChannels strategy = MessageStrategyFactory.getChannelFromSends(channelsId);

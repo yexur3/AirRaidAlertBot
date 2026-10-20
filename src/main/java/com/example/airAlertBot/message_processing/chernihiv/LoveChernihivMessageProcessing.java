@@ -21,7 +21,7 @@ public class LoveChernihivMessageProcessing implements MessageProcessingFromTele
         } else if (rawMessageText.contains("відбій повітряної тривоги")) {
             eventType = AlertEventType.ALERT_ENDED;
         } else {
-            return null;
+            return List.of();
         }
 
         DangerLevel dangerLevel = null;
@@ -34,12 +34,12 @@ public class LoveChernihivMessageProcessing implements MessageProcessingFromTele
         Reason reason = null;
         if (rawMessageText.contains("Дронова загроза")) {
             reason = Reason.DRONES;
-            result.add(new AlertInfo(eventType, "Чернігівський", AlertScope.RAION, dangerLevel, reason));
         } else if (rawMessageText.contains("Ракетна загроза")) {
             reason = Reason.MISSILES;
-            result.add(new AlertInfo(eventType, "Чернігівський", AlertScope.RAION, dangerLevel, reason));
+
         }
 
+        result.add(new AlertInfo(eventType, "Чернігівський", AlertScope.RAION, dangerLevel, reason));
         return result;
     }
 }
