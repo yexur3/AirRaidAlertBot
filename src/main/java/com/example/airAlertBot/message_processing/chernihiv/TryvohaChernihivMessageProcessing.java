@@ -32,9 +32,9 @@ public class TryvohaChernihivMessageProcessing implements MessageProcessingFromT
         }
 
         Reason reason = null;
-        if (rawMessageText.contains("Дронова загроза:")) {
+        if (rawMessageText.contains("Дронова загроза")) {
             reason = Reason.DRONES;
-        } else if (rawMessageText.contains("Ракетна загроза:")) {
+        } else if (rawMessageText.contains("Ракетна загроза")) {
             reason = Reason.MISSILES;
         }
 
