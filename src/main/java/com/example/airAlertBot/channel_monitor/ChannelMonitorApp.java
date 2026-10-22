@@ -1,6 +1,7 @@
 package com.example.airAlertBot.channel_monitor;
 
 import com.example.airAlertBot.entities.*;
+import com.example.airAlertBot.enums.AlertEventType;
 import com.example.airAlertBot.enums.AlertScope;
 import com.example.airAlertBot.enums.ChannelsId;
 import com.example.airAlertBot.message_processing.AlertInfo;
@@ -13,6 +14,7 @@ import it.tdlight.client.SimpleTelegramClient;
 import it.tdlight.client.SimpleTelegramClientBuilder;
 import it.tdlight.jni.TdApi;
 import lombok.extern.slf4j.Slf4j;
+import org.checkerframework.checker.units.qual.A;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
@@ -30,19 +32,21 @@ public class ChannelMonitorApp implements AutoCloseable{
     private final CityRepository cityRepository;
     private final RaionRepository raionRepository;
     private final RegionRepository regionRepository;
+    private final AlertStatusRepository alertStatusRepository;
 
     public ChannelMonitorApp(SimpleTelegramClientBuilder clientBuilder, ConsoleInteractiveAuthenticationData authenticationData,
                              MonitoredChannelRepository monitoredChannelRepository,
                              TelegramClient telegramClient,
                              UserSettingsRepository userSettingsRepository,
                              CityRepository cityRepository, RaionRepository raionRepository,
-                             RegionRepository regionRepository){
+                             RegionRepository regionRepository, AlertStatusRepository alertStatusRepository){
         this.monitoredChannelRepository = monitoredChannelRepository;
         this.telegramClient = telegramClient;
         this.userSettingsRepository = userSettingsRepository;
         this.cityRepository = cityRepository;
         this.raionRepository = raionRepository;
         this.regionRepository = regionRepository;
+        this.alertStatusRepository = alertStatusRepository;
 
         clientBuilder.addUpdateHandler(TdApi.UpdateAuthorizationState.class, this::onUpdateAuthorizationState);
         clientBuilder.addUpdateHandler(TdApi.UpdateNewMessage.class, this::onUpdateNewMessage);
@@ -78,6 +82,27 @@ public class ChannelMonitorApp implements AutoCloseable{
         if(alertInfos == null || alertInfos.isEmpty()) return;
 
         for(var alertInfo : alertInfos) {
+            if(alertStatusRepository.findByLocation(alertInfo.location()).isEmpty()){
+                AlertStatus alertStatus = new AlertStatus();
+                alertStatus.setLocation(alertInfo.location());
+                alertStatus.setAirAlert(alertInfo.eventType() == AlertEventType.ALERT_STARTED);
+                alertStatusRepository.save(alertStatus);
+            }
+
+            AlertStatus alertStatus = alertStatusRepository.findByLocation(alertInfo.location()).orElseThrow();
+
+            if (alertStatus.isAirAlert() && (alertInfo.eventType() == AlertEventType.ALERT_STARTED)) {
+                continue;
+            } else if (alertStatus.isAirAlert() && (alertInfo.eventType() == AlertEventType.ALERT_ENDED)) {
+                alertStatus.setAirAlert(false);
+                alertStatusRepository.save(alertStatus);
+            } else if (!alertStatus.isAirAlert() && (alertInfo.eventType() == AlertEventType.ALERT_STARTED)) {
+                alertStatus.setAirAlert(true);
+                alertStatusRepository.save(alertStatus);
+            } else if (!alertStatus.isAirAlert() && (alertInfo.eventType() == AlertEventType.ALERT_ENDED)) {
+                continue;
+            }
+
             if (alertInfo.scope().equals(AlertScope.RAION)) {
                 Optional<Raion> raionOpt = raionRepository.findByName(alertInfo.location());
 

@@ -29,18 +29,20 @@ public class ChannelMonitorInitializer implements CommandLineRunner {
     private final CityRepository cityRepository;
     private final RaionRepository raionRepository;
     private final RegionRepository regionRepository;
+    private final AlertStatusRepository alertStatusRepository;
 
     public ChannelMonitorInitializer(MonitoredChannelRepository monitoredChannelRepository,
                                      TelegramClient telegramClient,
                                      UserSettingsRepository userSettingsRepository,
                                      CityRepository cityRepository, RaionRepository raionRepository,
-                                     RegionRepository regionRepository){
+                                     RegionRepository regionRepository, AlertStatusRepository alertStatusRepository){
         this.monitoredChannelRepository = monitoredChannelRepository;
         this.telegramClient = telegramClient;
         this.userSettingsRepository = userSettingsRepository;
         this.cityRepository = cityRepository;
         this.raionRepository = raionRepository;
         this.regionRepository = regionRepository;
+        this.alertStatusRepository = alertStatusRepository;
     }
 
     @Override
@@ -61,6 +63,7 @@ public class ChannelMonitorInitializer implements CommandLineRunner {
 
         var authenticationData = AuthenticationSupplier.consoleLogin();
 
-        new ChannelMonitorApp(clientBuilder, authenticationData, monitoredChannelRepository, telegramClient, userSettingsRepository, cityRepository, raionRepository, regionRepository);
+        new ChannelMonitorApp(clientBuilder, authenticationData, monitoredChannelRepository, telegramClient, userSettingsRepository,
+                cityRepository, raionRepository, regionRepository, alertStatusRepository);
     }
 }
