@@ -1,7 +1,7 @@
-package com.example.airAlertBot.message_processing.shared;
+package com.example.airAlertBot.air_alert_processing.shared;
 
-import com.example.airAlertBot.message_processing.AlertInfo;
-import com.example.airAlertBot.message_processing.MessageProcessingFromTelegramChannels;
+import com.example.airAlertBot.air_alert_processing.AlertInfo;
+import com.example.airAlertBot.air_alert_processing.MessageProcessingFromTelegramChannels;
 
 import java.util.List;
 

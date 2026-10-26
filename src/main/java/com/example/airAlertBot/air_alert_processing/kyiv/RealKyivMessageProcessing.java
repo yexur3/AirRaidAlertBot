@@ -1,11 +1,11 @@
-package com.example.airAlertBot.message_processing.kyiv;
+package com.example.airAlertBot.air_alert_processing.kyiv;
 
 import com.example.airAlertBot.enums.AlertEventType;
 import com.example.airAlertBot.enums.AlertScope;
 import com.example.airAlertBot.enums.DangerLevel;
 import com.example.airAlertBot.enums.Reason;
-import com.example.airAlertBot.message_processing.AlertInfo;
-import com.example.airAlertBot.message_processing.MessageProcessingFromTelegramChannels;
+import com.example.airAlertBot.air_alert_processing.AlertInfo;
+import com.example.airAlertBot.air_alert_processing.MessageProcessingFromTelegramChannels;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -1,4 +1,4 @@
-package com.example.airAlertBot.message_processing;
+package com.example.airAlertBot.air_alert_processing;
 
 import java.util.List;
 

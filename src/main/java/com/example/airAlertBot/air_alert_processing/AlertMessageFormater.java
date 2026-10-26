@@ -1,4 +1,4 @@
-package com.example.airAlertBot.message_processing;
+package com.example.airAlertBot.air_alert_processing;
 
 import com.example.airAlertBot.enums.AlertEventType;
 import com.example.airAlertBot.enums.DangerLevel;

@@ -1,12 +1,11 @@
-package com.example.airAlertBot.message_processing;
+package com.example.airAlertBot.air_alert_processing;
 
 import com.example.airAlertBot.enums.ChannelsId;
-import com.example.airAlertBot.message_processing.chernihiv.LoveChernihivMessageProcessing;
-import com.example.airAlertBot.message_processing.chernihiv.SyspilneChernihivMessageProcessing;
-import com.example.airAlertBot.message_processing.chernihiv.TryvohaChernihivMessageProcessing;
-import com.example.airAlertBot.message_processing.kyiv.RealKyivMessageProcessing;
-import com.example.airAlertBot.message_processing.shared.NotImplementedMessageProcessing;
-import org.checkerframework.checker.units.qual.N;
+import com.example.airAlertBot.air_alert_processing.chernihiv.LoveChernihivMessageProcessing;
+import com.example.airAlertBot.air_alert_processing.chernihiv.SyspilneChernihivMessageProcessing;
+import com.example.airAlertBot.air_alert_processing.chernihiv.TryvohaChernihivMessageProcessing;
+import com.example.airAlertBot.air_alert_processing.kyiv.RealKyivMessageProcessing;
+import com.example.airAlertBot.air_alert_processing.shared.NotImplementedMessageProcessing;
 
 public class MessageStrategyFactory {
     public static MessageProcessingFromTelegramChannels getChannelFromSends(ChannelsId channelsId){

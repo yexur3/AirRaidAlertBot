@@ -4,8 +4,8 @@ import com.example.airAlertBot.enums.AlertEventType;
 import com.example.airAlertBot.enums.AlertScope;
 import com.example.airAlertBot.enums.DangerLevel;
 import com.example.airAlertBot.enums.Reason;
-import com.example.airAlertBot.message_processing.AlertInfo;
-import com.example.airAlertBot.message_processing.chernihiv.LoveChernihivMessageProcessing;
+import com.example.airAlertBot.air_alert_processing.AlertInfo;
+import com.example.airAlertBot.air_alert_processing.chernihiv.LoveChernihivMessageProcessing;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
