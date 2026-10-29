@@ -3,7 +3,7 @@ package com.example.airAlertBot.air_alert_processing.chernihiv;
 import com.example.airAlertBot.enums.AlertEventType;
 import com.example.airAlertBot.enums.AlertScope;
 import com.example.airAlertBot.enums.DangerLevel;
-import com.example.airAlertBot.enums.Reason;
+import com.example.airAlertBot.enums.ObjectType;
 import com.example.airAlertBot.air_alert_processing.AlertInfo;
 import com.example.airAlertBot.air_alert_processing.MessageProcessingFromTelegramChannels;
 
@@ -31,15 +31,15 @@ public class LoveChernihivMessageProcessing implements MessageProcessingFromTele
             dangerLevel = DangerLevel.RED;
         }
 
-        Reason reason = null;
+        ObjectType objectType = null;
         if (rawMessageText.contains("Дронова загроза")) {
-            reason = Reason.DRONES;
+            objectType = ObjectType.DRONES;
         } else if (rawMessageText.contains("Ракетна загроза")) {
-            reason = Reason.MISSILES;
+            objectType = ObjectType.MISSILES;
 
         }
 
-        result.add(new AlertInfo(eventType, "Чернігівський", AlertScope.RAION, dangerLevel, reason));
+        result.add(new AlertInfo(eventType, "Чернігівський", AlertScope.RAION, dangerLevel, objectType));
         return result;
     }
 }

@@ -1,6 +1,7 @@
 package com.example.airAlertBot.enums;
 
-public enum Reason {
+public enum ObjectType {
     DRONES,
-    MISSILES
+    MISSILES,
+    UNKNOWN
 }

@@ -1,5 +1,7 @@
 package com.example.airAlertBot.air_target_processing;
 
+import java.util.List;
+
 public interface TargetsProcessing {
-    TargetInfo execute(String rawMessageText);
+    List<TargetInfo> execute(String rawMessageText);
 }

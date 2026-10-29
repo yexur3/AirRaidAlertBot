@@ -2,7 +2,7 @@ package com.example.airAlertBot.air_alert_processing;
 
 import com.example.airAlertBot.enums.AlertEventType;
 import com.example.airAlertBot.enums.DangerLevel;
-import com.example.airAlertBot.enums.Reason;
+import com.example.airAlertBot.enums.ObjectType;
 
 public class AlertMessageFormater {
 
@@ -17,8 +17,8 @@ public class AlertMessageFormater {
                 sb.append("Рівень небезпеки: ").append(levelText).append("\n");
             }
 
-            if (alertInfo.reason() != null){
-                String reasonText = alertInfo.reason() == Reason.DRONES ? "загроза БпЛА" : "ракетна загроза";
+            if (alertInfo.objectType() != null){
+                String reasonText = alertInfo.objectType() == ObjectType.DRONES ? "загроза БпЛА" : "ракетна загроза";
                 sb.append("Причина: ").append(reasonText).append("\n");
             }
         } else {

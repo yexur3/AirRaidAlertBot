@@ -3,7 +3,7 @@ package com.example.airAlertBot.air_alert_processing.kyiv;
 import com.example.airAlertBot.enums.AlertEventType;
 import com.example.airAlertBot.enums.AlertScope;
 import com.example.airAlertBot.enums.DangerLevel;
-import com.example.airAlertBot.enums.Reason;
+import com.example.airAlertBot.enums.ObjectType;
 import com.example.airAlertBot.air_alert_processing.AlertInfo;
 import com.example.airAlertBot.air_alert_processing.MessageProcessingFromTelegramChannels;
 
@@ -32,26 +32,26 @@ public class RealKyivMessageProcessing implements MessageProcessingFromTelegramC
             dangerLevel = DangerLevel.RED;
         }
 
-        Reason reason = rawMessageText.contains("БпЛА") ? Reason.DRONES : null;
+        ObjectType objectType = rawMessageText.contains("БпЛА") ? ObjectType.DRONES : null;
 
         String location = "";
         AlertScope scope = null;
         if (rawMessageText.contains("М. КИЇВ")){
             location = "м. Київ";
             scope = AlertScope.RAION;
-            result.add(new AlertInfo(eventType, location, scope, dangerLevel, reason));
+            result.add(new AlertInfo(eventType, location, scope, dangerLevel, objectType));
         } else if (rawMessageText.contains("КИЇВСЬКА ОБЛАСТЬ")) {
             location = "Київська область";
             scope = AlertScope.REGION;
-            result.add(new AlertInfo(eventType, location, scope, dangerLevel, reason));
+            result.add(new AlertInfo(eventType, location, scope, dangerLevel, objectType));
         } else if (rawMessageText.contains("КИЇВ ТА ОБЛАСТЬ")) {
             location = "м. Київ";
             scope = AlertScope.RAION;
-            result.add(new AlertInfo(eventType, location, scope, dangerLevel, reason));
+            result.add(new AlertInfo(eventType, location, scope, dangerLevel, objectType));
 
             location = "Київська область";
             scope = AlertScope.REGION;
-            result.add(new AlertInfo(eventType, location, scope, dangerLevel, reason));
+            result.add(new AlertInfo(eventType, location, scope, dangerLevel, objectType));
         }
 
         return result;

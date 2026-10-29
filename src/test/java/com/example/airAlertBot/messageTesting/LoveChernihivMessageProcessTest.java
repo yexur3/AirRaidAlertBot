@@ -3,7 +3,7 @@ package com.example.airAlertBot.messageTesting;
 import com.example.airAlertBot.enums.AlertEventType;
 import com.example.airAlertBot.enums.AlertScope;
 import com.example.airAlertBot.enums.DangerLevel;
-import com.example.airAlertBot.enums.Reason;
+import com.example.airAlertBot.enums.ObjectType;
 import com.example.airAlertBot.air_alert_processing.AlertInfo;
 import com.example.airAlertBot.air_alert_processing.chernihiv.LoveChernihivMessageProcessing;
 import org.junit.jupiter.api.Test;
@@ -34,7 +34,7 @@ public class LoveChernihivMessageProcessTest {
         List<AlertInfo> result = strategy.execute(text);
 
         assertEquals(List.of(
-                new AlertInfo(AlertEventType.ALERT_STARTED, "Чернігівський", AlertScope.RAION, DangerLevel.YELLOW, Reason.DRONES)
+                new AlertInfo(AlertEventType.ALERT_STARTED, "Чернігівський", AlertScope.RAION, DangerLevel.YELLOW, ObjectType.DRONES)
         ), result);
     }
 
@@ -45,7 +45,7 @@ public class LoveChernihivMessageProcessTest {
         List<AlertInfo> result = strategy.execute(text);
 
         assertEquals(List.of(
-                new AlertInfo(AlertEventType.ALERT_STARTED, "Чернігівський", AlertScope.RAION, DangerLevel.RED, Reason.MISSILES)
+                new AlertInfo(AlertEventType.ALERT_STARTED, "Чернігівський", AlertScope.RAION, DangerLevel.RED, ObjectType.MISSILES)
         ), result);
     }
 

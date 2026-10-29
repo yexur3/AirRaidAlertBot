@@ -3,7 +3,7 @@ package com.example.airAlertBot.air_alert_processing.chernihiv;
 import com.example.airAlertBot.enums.AlertEventType;
 import com.example.airAlertBot.enums.AlertScope;
 import com.example.airAlertBot.enums.DangerLevel;
-import com.example.airAlertBot.enums.Reason;
+import com.example.airAlertBot.enums.ObjectType;
 import com.example.airAlertBot.air_alert_processing.AlertInfo;
 import com.example.airAlertBot.air_alert_processing.MessageProcessingFromTelegramChannels;
 
@@ -31,11 +31,11 @@ public class TryvohaChernihivMessageProcessing implements MessageProcessingFromT
             dangerLevel = DangerLevel.RED;
         }
 
-        Reason reason = null;
+        ObjectType objectType = null;
         if (rawMessageText.contains("Дронова загроза")) {
-            reason = Reason.DRONES;
+            objectType = ObjectType.DRONES;
         } else if (rawMessageText.contains("Ракетна загроза")) {
-            reason = Reason.MISSILES;
+            objectType = ObjectType.MISSILES;
         }
 
         AlertScope scope = AlertScope.RAION;
@@ -45,7 +45,7 @@ public class TryvohaChernihivMessageProcessing implements MessageProcessingFromT
             if (line.startsWith("•")) {
                     String location = line.substring(1)
                             .strip().replaceFirst("\\s+р-н$", "");
-                    result.add(new AlertInfo(eventType, location, scope, dangerLevel, reason));
+                    result.add(new AlertInfo(eventType, location, scope, dangerLevel, objectType));
             }
         }
 
