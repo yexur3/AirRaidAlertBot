@@ -16,7 +16,7 @@ public class SyspilneChernihivTargetsStrategy implements TargetsProcessing {
         if(rawMessageText.startsWith("\uD83D\uDD3A")){
             if (rawMessageText.contains("Ударні БпЛА")) {
                 objectType = ObjectType.DRONES;
-            } else if (rawMessageText.contains("Реактивні БпЛА")) {
+            } else if (rawMessageText.contains("Реактивні БпЛА") || rawMessageText.toLowerCase().contains("реактивн")) {
                 objectType = ObjectType.JET_DRONES;
             } else if (rawMessageText.contains("БпЛА")) {
                 objectType = ObjectType.DRONES;
@@ -24,6 +24,8 @@ public class SyspilneChernihivTargetsStrategy implements TargetsProcessing {
                 objectType = ObjectType.BANDEROL;
             } else if (rawMessageText.contains("Балістична")) {
                 objectType = ObjectType.BALLISTICS_MISSILES;
+            } else {
+                return result;
             }
         }
 
@@ -48,9 +50,12 @@ public class SyspilneChernihivTargetsStrategy implements TargetsProcessing {
 
         String destination = null;
         if(rawMessageText.contains("на північ Чернігівщини")) {
-            result.add(new TargetInfo(objectType, origin, passingLocation, "Корюкіський", directionDetail));
+            result.add(new TargetInfo(objectType, origin, passingLocation, "Корюківський", directionDetail));
             result.add(new TargetInfo(objectType, origin, passingLocation, "Чернігівський", directionDetail));
             result.add(new TargetInfo(objectType, origin, passingLocation, "Новгород-Сіверський", directionDetail));
+        } else if (rawMessageText.contains("на Київщину")) {
+            result.add(new TargetInfo(objectType, origin, passingLocation, "Вишгородський", directionDetail));
+            result.add(new TargetInfo(objectType, origin, passingLocation, "Броварський", directionDetail));
         }
 
         return result;
