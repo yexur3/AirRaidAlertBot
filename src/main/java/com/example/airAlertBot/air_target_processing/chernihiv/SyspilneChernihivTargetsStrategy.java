@@ -6,6 +6,7 @@ import com.example.airAlertBot.enums.ObjectType;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 public class SyspilneChernihivTargetsStrategy implements TargetsProcessing {
     @Override
@@ -39,8 +40,11 @@ public class SyspilneChernihivTargetsStrategy implements TargetsProcessing {
         }
 
         // TODO: Доробити нормально розподілення по локації де летить
+        Pattern pattern = Pattern.compile(
+                "(?iu)\\bз\\s+(?=\\p{L}{11,12}\\b)Ч?е?р?н?і?г?і?в?щ?и?н?и?\\b"
+        );
         String passingLocation = null;
-        if (rawMessageText.contains("Чернігівщина:") || rawMessageText.contains("на Чернігівщині")) {
+        if (rawMessageText.contains("Чернігівщина:") || rawMessageText.contains("на Чернігівщині") || pattern.matcher(rawMessageText).find()) {
             passingLocation = "Чернігівська область";
         } else if (rawMessageText.contains("повз Сновськ")) {
             passingLocation = "Корюківський район";
@@ -53,7 +57,7 @@ public class SyspilneChernihivTargetsStrategy implements TargetsProcessing {
             result.add(new TargetInfo(objectType, origin, passingLocation, "Корюківський", directionDetail));
             result.add(new TargetInfo(objectType, origin, passingLocation, "Чернігівський", directionDetail));
             result.add(new TargetInfo(objectType, origin, passingLocation, "Новгород-Сіверський", directionDetail));
-        } else if (rawMessageText.contains("на Київщину")) {
+        } else if (rawMessageText.contains("на Київщину") || rawMessageText.contains("на північ Київщини")) {
             result.add(new TargetInfo(objectType, origin, passingLocation, "Вишгородський", directionDetail));
             result.add(new TargetInfo(objectType, origin, passingLocation, "Броварський", directionDetail));
         }
